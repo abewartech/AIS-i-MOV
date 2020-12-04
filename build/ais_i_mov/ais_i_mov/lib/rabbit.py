@@ -110,16 +110,16 @@ class Rabbit_Producer(object):
     Send the decoded messages to a rabbit broker
     '''
     def __init__(self):
-        log.info('Setting up RabbitMQ source/sink interface...') 
+        log.info('Setting up RabbitMQ sink interface...') 
         # Key to consume from:
         self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('SRC_RABBITMQ_DEFAULT_USER'),
                                                             os.getenv('SRC_RABBITMQ_DEFAULT_PASS'),
                                                             os.getenv('SRC_RABBIT_HOST'),
                                                             os.getenv('SRC_RABBIT_MSG_PORT'))
-        log.debug('Source/Sink Rabbit is at {0}'.format(self.rabbit_url))
+        log.info('Source/Sink Rabbit is at {0}'.format(self.rabbit_url))
         self.exchange = Exchange(os.getenv('SRC_RABBIT_EXCHANGE'), type="topic")
         self.connection = Connection(self.rabbit_url) #This connection is only used for the dummy queue...
-        self.create_test_queue()
+ 
         self.sink = Producer(exchange=self.exchange,
                               channel=self.connection,
                               serializer ='json' )
