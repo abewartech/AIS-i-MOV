@@ -40,7 +40,7 @@ def setup_logging():
         log_file = os.getenv('LOG_NAME')
         if not os.path.exists(log_path): 
             os.mkdir(log_path)
-        log_file_handler = logging.handlers.TimedRotatingFileHandler(log_path+log_file, when='midnight')
+        log_file_handler = logging.handlers.TimedRotatingFileHandler(os.path.join(log_path,log_file), when='midnight')
         log_file_handler.setFormatter( logging.Formatter('%(asctime)s: %(message)s') )
         log_file_handler.setLevel(logging.DEBUG)
         logger.addHandler(log_file_handler)
@@ -78,7 +78,8 @@ class AIS_Parser():
                 continue 
             data_logger.debug(msg)
             msg_dict = {}
-            msg_dict['event_time'] = datetime.datetime.utcnow().isoformat()
+            msg_dict['server_time'] = datetime.datetime.utcnow().isoformat()
+            msg_dict['event_time'] = ''
             msg_dict['routing_key'] = self.routing_key
 
             if msg.split(',')[1] == '1':                
@@ -96,7 +97,7 @@ class AIS_Parser():
                 msg_dict['multiline'] = True
                 #Check if second part belongs with first part
                 if msg.split(',')[3] == self.multi_msg_dict['msg_id']:
-                    msg_dict['message'] = (msg, self.multi_msg_dict['msg'])
+                    msg_dict['message'] = (self.multi_msg_dict['msg'],msg)
                     self.multi_msg_dict = {}
                     msg_dict_list.append(msg_dict)
                 else:
