@@ -107,7 +107,7 @@ def read_socket(data_logger):
     sock = socket.socket()
     log.info('Setting socket timeout to %s seconds.',os.getenv('SOCKET_TIMEOUT'))
     sock.settimeout(int(os.getenv('SOCKET_TIMEOUT')))
-    server_address = (os.getenv('SOURCE_HOST'),os.getenv('SOCKET_TIMEOUT'))
+    server_address = (os.getenv('SOURCE_HOST'),int(os.getenv('SOURCE_PORT')))
     log.info('Connecting to '+str(server_address))
     sock.connect(server_address)
 
