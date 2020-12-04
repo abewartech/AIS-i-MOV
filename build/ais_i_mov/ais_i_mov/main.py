@@ -74,6 +74,8 @@ class AIS_Parser():
         msg_dict_list = [] 
         
         for msg in chunk_list:
+            if len(msg) < 2:
+                continue
             log.debug('MSG: ' + msg)
             data_logger.debug(msg)
             msg_dict = {}
