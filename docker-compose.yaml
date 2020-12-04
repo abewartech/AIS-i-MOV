@@ -14,4 +14,4 @@ services:
       volumes:
          - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows. 
          - ${MOUNT_LOG_DIR}:${LOG_DIR}
-      command: python /usr/local/ais_i_mov/main.py  -ll 'INFO' 
+      command: python /usr/local/ais_i_mov/main.py  -ll 'DEBUG' 
