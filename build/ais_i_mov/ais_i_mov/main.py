@@ -74,6 +74,7 @@ class AIS_Parser():
         msg_dict_list = [] 
         
         for msg in chunk_list:
+            log.debug('MSG: ' + msg)
             data_logger.debug(msg)
             msg_dict = {}
             msg_dict['event_time'] = datetime.datetime.utcnow().isoformat()
