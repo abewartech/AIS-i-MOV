@@ -112,12 +112,12 @@ class Rabbit_Producer(object):
     def __init__(self):
         log.info('Setting up RabbitMQ sink interface...') 
         # Key to consume from:
-        self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('SRC_RABBITMQ_DEFAULT_USER'),
-                                                            os.getenv('SRC_RABBITMQ_DEFAULT_PASS'),
-                                                            os.getenv('SRC_RABBIT_HOST'),
-                                                            os.getenv('SRC_RABBIT_MSG_PORT'))
+        self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('SNK_RABBITMQ_DEFAULT_USER'),
+                                                            os.getenv('SNK_RABBITMQ_DEFAULT_PASS'),
+                                                            os.getenv('SNK_RABBIT_HOST'),
+                                                            os.getenv('SNK_RABBIT_MSG_PORT'))
         log.info('Source/Sink Rabbit is at {0}'.format(self.rabbit_url))
-        self.exchange = Exchange(os.getenv('SRC_RABBIT_EXCHANGE'), type="topic")
+        self.exchange = Exchange(os.getenv('SNK_RABBIT_EXCHANGE'), type="topic")
         self.connection = Connection(self.rabbit_url) #This connection is only used for the dummy queue...
  
         self.sink = Producer(exchange=self.exchange,
