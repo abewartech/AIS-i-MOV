@@ -66,6 +66,7 @@ class AIS_Parser():
         # !ABVDM,1,1,,B,B8u:Qa0000DwdMs8?LrDio053P06,0*59
 
         #Place start of message at start of chunk
+        log.debug(msg_chunk)
         msg_chunk = msg_chunk[msg_chunk.index('!'):]
         #Split the chunk into a list of messages
         chunk_list = msg_chunk.split('\n') 
