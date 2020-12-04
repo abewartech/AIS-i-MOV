@@ -7,7 +7,7 @@ services:
     # Reads a folder full of daily AIS logs, decodes them and feeds them onto a rabbitmq topic 
       hostname: ${PROJECT_NAME}_ais_mover
       build:
-        context: ./build/ais-i-mov
+        context: ./build/ais_i_mov
         dockerfile: Dockerfile
       env_file:
         - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
