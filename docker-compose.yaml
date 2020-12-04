@@ -13,5 +13,5 @@ services:
         - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
       volumes:
          - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows. 
-         - ${DATA_FILE_DIR}:${MOUNT_LOG_DIR}
+         - ${MOUNT_LOG_DIR}:${LOG_DIR}
       command: python /usr/local/ais_i_mov/main.py  -ll 'INFO' 
