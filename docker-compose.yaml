@@ -1,0 +1,17 @@
+version: '3.2'
+services:
+  # ---------------------------------------------
+  # PROCESSING CHAIN: to do the actual work
+  # ---------------------------------------------
+  ais_decoder:
+    # Reads a folder full of daily AIS logs, decodes them and feeds them onto a rabbitmq topic 
+      hostname: ${PROJECT_NAME}_ais_mover
+      build:
+        context: ./build/ais-i-mov
+        dockerfile: Dockerfile
+      env_file:
+        - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
+      volumes:
+         - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows. 
+         - ${DATA_FILE_DIR}:${MOUNT_LOG_DIR}
+      command: python /usr/local/ais_i_mov/main.py  -ll 'INFO' 
