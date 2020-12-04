@@ -75,8 +75,7 @@ class AIS_Parser():
         
         for msg in chunk_list:
             if len(msg) < 2:
-                continue
-            log.debug('MSG: ' + msg)
+                continue 
             data_logger.debug(msg)
             msg_dict = {}
             msg_dict['event_time'] = datetime.datetime.utcnow().isoformat()
@@ -127,8 +126,8 @@ def read_socket(data_logger):
             for msg in msg_list:
                 rabbit_publisher.produce(msg)
     except:
-        log.error('Error in AIS streaming:')
-        log.error(traceback.format_exc())
+        log.error('Error in AIS streaming:' + traceback.format_exc())
+        log.error(data_chunk)
     finally:
         log.warning('Closing socket')
         sock.close() 
