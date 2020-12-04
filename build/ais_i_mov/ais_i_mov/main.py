@@ -51,7 +51,7 @@ class AIS_Parser():
         self.routing_key = os.getenv('PRODUCE_KEY')
         self.multi_msg_dict = {}
 
-    def parse_and_seperate(self, msg_chunk,data_logger):
+    def parse_and_seperate(self, msg_chunk, data_logger):
         # Take a chunk of messages and split them up line by line
         # Log incoming messages
         # Parse out the header and footer info
@@ -113,11 +113,12 @@ def read_socket(data_logger):
 
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
+    ais_parser = AIS_Parser()
     try:
         log.info('Streaming AIS...')
         while True:
             data_chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
-            msg_list = parse_and_seperate(data_chunk,data_logger)
+            msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
             for msg in msg_list:
                 rabbit_publisher.produce(msg)
     except:
