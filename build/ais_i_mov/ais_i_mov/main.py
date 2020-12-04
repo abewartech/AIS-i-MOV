@@ -67,6 +67,7 @@ class AIS_Parser():
 
         #Place start of message at start of chunk
         log.debug(msg_chunk)
+        msg_chunk = msg_chunk.decode('utf-8')
         msg_chunk = msg_chunk[msg_chunk.index('!'):]
         #Split the chunk into a list of messages
         chunk_list = msg_chunk.split('\n') 
