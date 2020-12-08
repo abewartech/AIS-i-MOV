@@ -14,20 +14,19 @@ import re
 import time
 import datetime
 
-import ais 
+import ais
+
+import lib.file_streamer
 import lib.funcs 
 
 
-log = logging.getLogger('main.file_streamer')
+log = logging.getLogger('main.ais_decode')
 # log.setLevel('DEBUG')
 
-class AIS_Worker(object):
-    def __init__(self, cfg_object):
-        '''
-        Setup all the Rabbit stuff and then init the AIS decoder
-        '''
-        self.cfg = cfg_object  
 
+class AIS_Decoder():
+    def __init__():
+        pass
     def eta_from_multi(self, decoded_dict, event_time):
         # Turn the ETA items in Voyage reports into a datetime object
         try:
@@ -109,8 +108,39 @@ class AIS_Worker(object):
         log.debug('Decoding: {0}'.format(decode_dict))
         return decode_dict
 
-    def run(self):
+    def decode(self, msg):
         '''
-        Reads the json messages from the rabbit queue
+        Take the message, parse it and decode it. return a decoded dict.
         '''
-        pass
+        log.info('Parsing MSG: '+ str(msg))
+        try:
+            parsed_line = parse_decode(line)
+            if parsed_line.get('frag_count') == '1':
+                decoded_line = single_decode(parsed_line)
+            else:
+                next_line = open_file.readline()
+                parsed_next_line = parse_decode(next_line)
+                decoded_line = multi_decode(parsed_line, parsed_next_line)
+
+            decoded_line['routing_key'] = os.getenv('routing_key')
+            decoded_line['event_time'] = datetime.datetime.fromtimestamp(int(parsed_line.get('event_time'))).isoformat()
+            log.debug(decoded_line)
+        except:
+            log.warning('Problem with parsing and decoding line: {0}'.format(line))
+            
+
+        try:                         
+            if decoded_line.get('id') in [1,2,3,5,9,18,19]:
+                log.debug('Rabbit_Produce')
+                rabbit.produce_msg(decoded_line) 
+        except TimeoutError as Terr:
+            # Something went wrong with the connection, rebuild it.
+            log.warning('Timeout ERROR: {0}'.format(Terr))
+            rabbit = lib.funcs.Rabbit_Wrapper(CFG) 
+        except Exception as err:
+            log.warning(err)
+            pass
+        end = time.time()
+        log.info('Did {0} messages in {1} seconds.'.format(line_count, (end-start)))
+        log.info('Sleeping for %s seconds.',CFG.get('file_sleep'))
+        timer.sleep(int(CFG.get('file_sleep')))
