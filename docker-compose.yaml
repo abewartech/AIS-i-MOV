@@ -4,7 +4,7 @@ services:
   # Example of AIS ingestor
   # ---------------------------------------------
   ais_decoder:
-    # Reads a folder full of daily AIS logs, decodes them and feeds them onto a rabbitmq topic 
+    # Consumes encoded AIS from rabbit and returns decoded AIS to rabbit.
     hostname: ${PROJECT_NAME}_ais_mover
     build:
       context: ./build/ais_i_mov
