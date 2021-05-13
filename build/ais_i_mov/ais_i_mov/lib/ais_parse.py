@@ -43,12 +43,14 @@ class AIS_Parser():
         # How can I guarentee that the line is started in the right place?
         if self.ais_meta_style == 'IMIS':
             msg_chunk = msg_chunk[msg_chunk.index('\r')+1:]
+            chunk_list = msg_chunk.split('\n') 
         elif self.ais_meta_style == 'NONE':
             msg_chunk = msg_chunk[msg_chunk.index('!'):]
+            chunk_list = msg_chunk.split('\n') 
         else: 
             pass
         #Split the chunk into a list of messages
-        chunk_list = msg_chunk.split('\n') 
+        # chunk_list = msg_chunk.split('\n') 
         msg_dict_list = [] 
         
         for msg in chunk_list:            

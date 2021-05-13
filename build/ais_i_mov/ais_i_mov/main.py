@@ -72,7 +72,7 @@ def read_socket(data_logger):
                 continue
     except:
         log.error('Error in AIS streaming:' + traceback.format_exc())
-        log.error(data_chunk)
+        log.error('Data: ' + data_chunk)
     finally:
         log.warning('Closing socket')
         sock.close() 
