@@ -18,7 +18,7 @@ class AIS_Parser():
     # Parsing style depends on the source of data and is controlled by the .env vars
     def __init__(self):
         self.routing_key = os.getenv('PRODUCE_KEY')
-        self. ais_meta_style = os.getenv('AIS_STYLE')
+        self.ais_meta_style = os.getenv('AIS_STYLE')
         self.multi_msg_dict = {}
 
     def parse_and_seperate(self, msg_chunk, data_logger):
@@ -41,9 +41,9 @@ class AIS_Parser():
 
         # This probably needs a little more thinking. How to index chunks when there are different metadata styles? 
         # How can I guarentee that the line is started in the right place?
-        if self.ais_style == 'IMIS':
+        if self.ais_meta_style == 'IMIS':
             msg_chunk = msg_chunk[msg_chunk.index('\n')+1:]
-        elif self.ais_style == 'NONE':
+        elif self.ais_meta_style == 'NONE':
             msg_chunk = msg_chunk[msg_chunk.index('!'):]
         else: 
             pass

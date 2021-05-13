@@ -149,6 +149,7 @@ def do_work():
     except:
         log.error('Error in main loop:') 
         log.error(traceback.format_exc())
+        time.sleep(10)
 
 
     log.info('Worker shutdown...')
