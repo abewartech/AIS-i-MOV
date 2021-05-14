@@ -58,6 +58,7 @@ class AIS_Parser():
                 continue 
             data_logger.debug(msg)
             msg_dict = self.style_parse(msg)
+            log.debug(msg_dict)
             msg_dict = self.aivdm_parse(msg_dict) 
             msg_dict_list.append(msg_dict)   
         return msg_dict_list
