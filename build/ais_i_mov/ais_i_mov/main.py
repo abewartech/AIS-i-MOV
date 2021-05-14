@@ -65,9 +65,14 @@ def read_socket(data_logger):
         while True:
             data_chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
             log.warning('----------------')
-            log.warning('Chunk size: {0}'.format(len(data_chunk)))
-            log.warning('Chunk start: {0} ...'.format(data_chunk[0:25]))
-            log.warning('Chunk end: ... {0}'.format(data_chunk[-25:]))
+            chunk_len = len(data_chunk)
+            if chunk_len <  150:
+                row_len = chunk_len
+            else:
+                row_len = 150
+            log.warning('Chunk size: {0}'.format(chunk_len))
+            log.warning('Chunk start: {0} ...'.format(data_chunk[0:row_len]))
+            log.warning('Chunk end: ... {0}'.format(data_chunk[row_len:]))
             # if len(data_chunk) > 2:
                 # msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
                 # for msg in msg_list:
