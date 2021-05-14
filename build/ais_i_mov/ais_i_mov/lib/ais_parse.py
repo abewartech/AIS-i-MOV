@@ -58,11 +58,12 @@ class AIS_Parser():
                 continue 
             data_logger.debug(msg)
             msg_dict = self.style_parse(msg)
-            msg_dict = self.aivdm_parse(msg, msg_dict) 
+            msg_dict = self.aivdm_parse(msg_dict) 
             msg_dict_list.append(msg_dict)   
         return msg_dict_list
     
-    def aivdm_parse(self, msg, msg_dict):
+    def aivdm_parse(self, msg_dict):
+        msg = msg_dict['ais']
         if msg.split(',')[1] == '1':                
                 msg_dict['multiline'] = False
                 msg_dict['message'] = msg 
@@ -123,6 +124,7 @@ class AIS_Parser():
             parsed_line['event_time'] =  datetime.datetime.fromtimestamp(int(meta_dict['c']))
             parsed_line['header'] = meta_dict
             parsed_line['routing_key'] = self.routing_key
+            parsed_line['ais'] = ais
 
         # elif self.ais_style == 'NONE':
         #     parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
