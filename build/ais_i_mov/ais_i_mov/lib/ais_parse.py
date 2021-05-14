@@ -19,6 +19,8 @@ class AIS_Parser():
     def __init__(self):
         self.routing_key = os.getenv('PRODUCE_KEY')
         self.ais_meta_style = os.getenv('AIS_STYLE')
+        log.debug('Sending to R-Key: {0}'.format(self.routing_key))
+        log.debug('AIS Style: {0}'.format(self.ais_meta_style))
         self.multi_msg_dict = {}
 
     def parse_and_seperate(self, msg_chunk, data_logger):
