@@ -136,7 +136,7 @@ class Rabbit_Producer(object):
     def produce(self, message):
         # This function is meant to be overloaded to provide some kind of functionality
         try:
-            log.info('Sending message to RMQ: ' + str(message))
+            log.debug('Sending message to RMQ: ' + str(message))
             producer = self.connection.ensure(self.sink, self.sink.publish, errback=self.errback, interval_start = 1.0)
             routing_key = message['routing_key']
             producer(message, routing_key=routing_key)
