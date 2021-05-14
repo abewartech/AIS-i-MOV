@@ -72,8 +72,8 @@ def read_socket(data_logger):
                 # msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
                 # for msg in msg_list:
                     # rabbit_publisher.produce(msg)
-            else:
-                continue
+            # else:
+                # continue
     except:
         log.error('Error in AIS streaming:' + traceback.format_exc())
         log.error('Data: ' + str(data_chunk))
