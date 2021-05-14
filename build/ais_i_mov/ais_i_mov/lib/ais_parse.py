@@ -127,9 +127,12 @@ class AIS_Parser():
                 meta_dict[item[: item.index(':')]] = item[item.index(':') +1:]
 
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
-            parsed_line['event_time'] =  datetime.datetime.fromtimestamp(int(meta_dict['c']))
             parsed_line['header'] = meta_dict
             parsed_line['routing_key'] = self.routing_key
+            try:
+                parsed_line['event_time'] =  datetime.datetime.fromtimestamp(int(meta_dict['c']))
+            except:
+                log.debug('No timestamp on this message')
             parsed_line['ais'] = ais
 
         # elif self.ais_style == 'NONE':
