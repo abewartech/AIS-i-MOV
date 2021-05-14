@@ -64,10 +64,14 @@ def read_socket(data_logger):
         log.info('Streaming AIS...')
         while True:
             data_chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
-            if len(data_chunk) > 2:
-                msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
-                for msg in msg_list:
-                    rabbit_publisher.produce(msg)
+            log.warning('----------------')
+            log.warning('Chunk size: {0}'.format(len(data_chunk)))
+            log.warning('Chunk start: {0} ...'.format(data_chunk[0:25]))
+            log.warning('Chunk end: ... {0}'.format(data_chunk[-25:]))
+            # if len(data_chunk) > 2:
+                # msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
+                # for msg in msg_list:
+                    # rabbit_publisher.produce(msg)
             else:
                 continue
     except:
