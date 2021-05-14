@@ -66,10 +66,12 @@ class AIS_Parser():
                 msg_dict = self.aivdm_parse(msg_dict) 
                 msg_dict_list.append(msg_dict)   
             except:
+                log.warning('-------------------------------------------------------')
                 log.warning('Problem while parsing AIS message: {0}'.format(str(msg)))
                 log.warning('Parsing Error:' + traceback.format_exc()) 
                 log.warning('Dict: {0}'.format(msg_dict))
                 log.warning('Multi-Dict: {0}'.format(self.multi_msg_dict))
+                log.warning("\n".join(chunk_list))
         return msg_dict_list
     
     def aivdm_parse(self, msg_dict):
@@ -134,7 +136,7 @@ class AIS_Parser():
             parsed_line['header'] = meta_dict
             parsed_line['routing_key'] = self.routing_key
             try:
-                parsed_line['event_time'] =  datetime.datetime.fromtimestamp(int(meta_dict['c']))
+                parsed_line['event_time'] =  datetime.datetime.fromtimestamp(int(meta_dict['c'])).isoformat()
             except:
                 log.debug('No timestamp on this message')
             parsed_line['ais'] = ais
