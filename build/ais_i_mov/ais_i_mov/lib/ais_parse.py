@@ -55,14 +55,17 @@ class AIS_Parser():
         # chunk_list = msg_chunk.split('\n') 
         msg_dict_list = [] 
         
-        for msg in chunk_list:            
-            if len(msg) < 2:
-                continue 
-            data_logger.debug(msg)
-            msg_dict = self.style_parse(msg)
-            log.debug(msg_dict)
-            msg_dict = self.aivdm_parse(msg_dict) 
-            msg_dict_list.append(msg_dict)   
+        for msg in chunk_list:    
+            try:        
+                if len(msg) < 2:
+                    continue 
+                data_logger.debug(msg)
+                msg_dict = self.style_parse(msg)
+                log.debug(msg_dict)
+                msg_dict = self.aivdm_parse(msg_dict) 
+                msg_dict_list.append(msg_dict)   
+            except:
+                log.warning('Problem while parsing AIS message: {0}'.format(str(msg)))
         return msg_dict_list
     
     def aivdm_parse(self, msg_dict):
