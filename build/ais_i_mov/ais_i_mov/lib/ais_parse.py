@@ -8,6 +8,7 @@ Created on Tue Dec  5 14:24:20 2017
 import os
 import logging
 import datetime
+import traceback
 from re import X
 
 log = logging.getLogger('ais_parse')
@@ -66,6 +67,7 @@ class AIS_Parser():
                 msg_dict_list.append(msg_dict)   
             except:
                 log.warning('Problem while parsing AIS message: {0}'.format(str(msg)))
+                log.warning('Parsing Error:' + traceback.format_exc()) 
         return msg_dict_list
     
     def aivdm_parse(self, msg_dict):

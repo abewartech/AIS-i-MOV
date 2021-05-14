@@ -36,7 +36,7 @@ def setup_logging():
     '''
     logger = logging.getLogger(os.getenv('LOG_NAME'))
     if not len(logger.handlers):
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
         log_path = os.getenv('LOG_DIR')
         log_file = os.getenv('LOG_NAME')
         if not os.path.exists(log_path): 
