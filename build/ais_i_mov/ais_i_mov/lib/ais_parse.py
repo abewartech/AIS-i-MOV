@@ -68,6 +68,7 @@ class AIS_Parser():
             except:
                 log.warning('Problem while parsing AIS message: {0}'.format(str(msg)))
                 log.warning('Parsing Error:' + traceback.format_exc()) 
+                log.warning('Dict: {0}'.format(msg_dict))
         return msg_dict_list
     
     def aivdm_parse(self, msg_dict):
