@@ -22,7 +22,8 @@ class AIS_Parser():
         self.ais_meta_style = os.getenv('AIS_STYLE')
         log.debug('Sending to R-Key: {0}'.format(self.routing_key))
         log.debug('AIS Style: {0}'.format(self.ais_meta_style))
-        self.multi_msg_dict = {}
+        self.multi_msg_dict = {} 
+        self.last_chunk = ''
 
     def parse_and_seperate(self, msg_chunk, data_logger):
         # Take a chunk of messages and split them up line by line
@@ -45,8 +46,15 @@ class AIS_Parser():
         # This probably needs a little more thinking. How to index chunks when there are different metadata styles? 
         # How can I guarentee that the line is started in the right place?
         if self.ais_meta_style == 'IMIS':
+            if msg_chunk[0:3] == b'\\g:' or  msg_chunk[0:3] == b'\\s:':
+                chunk_list = msg_chunk.split(b'\r\n') 
+            else: 
+                prev_s = self.last_chunk.rfind(b'\\s')
+                prev_g = self.last_chunk.rfind(b'\\g')
+                prev_msg = self.last_chunk[max(prev_s, prev_g):]
+                chunk_list = (prev_msg + msg_chunk).split(b'\r\n')
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
-            chunk_list = msg_chunk.split('\r\n') 
+            
         elif self.ais_meta_style == 'NONE':
             msg_chunk = msg_chunk[msg_chunk.index('\\!'):]
             chunk_list = msg_chunk.split('\n') 
@@ -72,6 +80,8 @@ class AIS_Parser():
                 log.warning('Dict: {0}'.format(msg_dict))
                 log.warning('Multi-Dict: {0}'.format(self.multi_msg_dict))
                 log.warning("\n".join(chunk_list))
+
+        self.last_chunk = msg_chunk
         return msg_dict_list
     
     def aivdm_parse(self, msg_dict):
