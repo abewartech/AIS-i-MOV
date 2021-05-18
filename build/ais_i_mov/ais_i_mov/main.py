@@ -77,7 +77,8 @@ def read_socket(data_logger):
                 msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
                 for msg in msg_list:
                     # rabbit_publisher.produce(msg)
-                    log.info(msg)
+                    # log.info(msg['ais'])
+                    pass
             else:
                 continue
     except:
