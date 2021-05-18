@@ -53,7 +53,7 @@ class AIS_Parser():
                 prev_g = self.last_chunk.rfind('\\g')
                 prev_msg = self.last_chunk[max(prev_s, prev_g):]
                 chunk_list = (prev_msg + msg_chunk).split('\r\n')
-                log.info('Combining prev chunk with this chunk: {0}'.format(msg_chunk[0]))
+                log.info('Combining prev chunk with this chunk: {0}'.format(chunk_list[0]))
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
             
         elif self.ais_meta_style == 'NONE':
