@@ -45,10 +45,10 @@ class AIS_Parser():
         # This probably needs a little more thinking. How to index chunks when there are different metadata styles? 
         # How can I guarentee that the line is started in the right place?
         if self.ais_meta_style == 'IMIS':
-            msg_chunk = msg_chunk[msg_chunk.index('\r')+1:]
-            chunk_list = msg_chunk.split('\n') 
+            # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
+            chunk_list = msg_chunk.split('\r\n') 
         elif self.ais_meta_style == 'NONE':
-            msg_chunk = msg_chunk[msg_chunk.index('!'):]
+            msg_chunk = msg_chunk[msg_chunk.index('\\!'):]
             chunk_list = msg_chunk.split('\n') 
         else: 
             pass

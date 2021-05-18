@@ -73,12 +73,13 @@ def read_socket(data_logger):
             log.warning('Chunk size: {0}'.format(chunk_len))
             log.warning('Chunk start: {0} ...'.format(data_chunk[0:row_len+1]))
             log.warning('Chunk end: ... {0}'.format(data_chunk[-row_len-1:]))
-            # if len(data_chunk) > 2:
-                # msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
-                # for msg in msg_list:
+            if len(data_chunk) > 2:
+                msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
+                for msg in msg_list:
                     # rabbit_publisher.produce(msg)
-            # else:
-                # continue
+                    log.warning(msg)
+            else:
+                continue
     except:
         log.error('Error in AIS streaming:' + traceback.format_exc())
         log.error('Data: ' + str(data_chunk))
