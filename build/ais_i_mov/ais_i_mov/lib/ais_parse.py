@@ -74,12 +74,12 @@ class AIS_Parser():
                 msg_dict = self.aivdm_parse(msg_dict) 
                 msg_dict_list.append(msg_dict)   
             except:
-                log.warning('-------------------------------------------------------')
+                log.debug('-------------------------------------------------------')
                 log.warning('Problem while parsing AIS message: {0}'.format(str(msg)))
-                log.warning('Parsing Error:' + traceback.format_exc()) 
-                log.warning('Dict: {0}'.format(msg_dict))
-                log.warning('Multi-Dict: {0}'.format(self.multi_msg_dict))
-                log.warning("\n".join(chunk_list))
+                log.debug('Parsing Error:' + traceback.format_exc()) 
+                log.debug('Dict: {0}'.format(msg_dict))
+                log.debug('Multi-Dict: {0}'.format(self.multi_msg_dict))
+                log.debug("\n".join(chunk_list))
 
         self.last_chunk = msg_chunk
         return msg_dict_list

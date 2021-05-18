@@ -64,7 +64,7 @@ def read_socket(data_logger):
         log.info('Streaming AIS...')
         while True:
             data_chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
-            log.warning('----------------')
+            log.debug('----------------')
             chunk_len = len(data_chunk)
             if chunk_len <  316:
                 row_len = chunk_len
