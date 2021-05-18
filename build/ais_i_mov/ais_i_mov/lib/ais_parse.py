@@ -69,18 +69,19 @@ class AIS_Parser():
             try:        
                 if len(msg) < 2:
                     continue 
-                data_logger.debug(msg)
-                msg_dict = self.style_parse(msg)
-                log.debug(msg_dict)
-                msg_dict, complete_msg = self.aivdm_parse(msg_dict) 
-                if complete_msg:
-                    msg_dict_list.append(msg_dict)   
+                else:
+                    data_logger.debug(msg)
+                    msg_dict = {}
+                    msg_dict = self.style_parse(msg) 
+                    msg_dict, complete_msg = self.aivdm_parse(msg_dict) 
+                    if complete_msg:
+                        msg_dict_list.append(msg_dict)   
             except:
-                log.info('-------------------------------------------------------')
-                log.info('Problem while parsing AIS message: {0}'.format(str(msg)))
-                log.info('Parsing Error:' + traceback.format_exc()) 
-                log.info('Dict: {0}'.format(msg_dict))
-                log.info('Multi-Dict: {0}'.format(self.multi_msg_dict))
+                log.debug('-------------------------------------------------------')
+                log.debug('Problem while parsing AIS message: {0}'.format(str(msg)))
+                log.debug('Parsing Error:' + traceback.format_exc()) 
+                log.debug('Dict: {0}'.format(msg_dict))
+                log.debug('Multi-Dict: {0}'.format(self.multi_msg_dict))
                 log.debug("\n".join(chunk_list))
 
         self.last_chunk = msg_chunk

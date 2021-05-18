@@ -76,7 +76,7 @@ def read_socket(data_logger):
             if len(data_chunk) > 2:
                 msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
                 for msg in msg_list:
-                    # rabbit_publisher.produce(msg)
+                    rabbit_publisher.produce(msg)
                     # log.info(msg['ais'])
                     pass
             else:
