@@ -53,7 +53,7 @@ class AIS_Parser():
                 prev_g = self.last_chunk.rfind('\\g')
                 prev_msg = self.last_chunk[max(prev_s, prev_g):]
                 chunk_list = (prev_msg + msg_chunk).split('\r\n')
-                log.info('Combining prev chunk with this chunk...')
+                log.info('Combining prev chunk with this chunk: {0}'.format(msg_chunk[0]))
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
             
         elif self.ais_meta_style == 'NONE':
@@ -72,8 +72,9 @@ class AIS_Parser():
                 data_logger.debug(msg)
                 msg_dict = self.style_parse(msg)
                 log.debug(msg_dict)
-                msg_dict = self.aivdm_parse(msg_dict) 
-                msg_dict_list.append(msg_dict)   
+                msg_dict, complete_msg = self.aivdm_parse(msg_dict) 
+                if complete_msg:
+                    msg_dict_list.append(msg_dict)   
             except:
                 log.debug('-------------------------------------------------------')
                 log.info('Problem while parsing AIS message: {0}'.format(str(msg)))
@@ -87,9 +88,11 @@ class AIS_Parser():
     
     def aivdm_parse(self, msg_dict):
         msg = msg_dict['ais']
+        complete_msg = False
         if msg.split(',')[1] == '1':                
                 msg_dict['multiline'] = False
                 msg_dict['message'] = msg 
+                complete_msg = True
 
         #Check if first part of multiline message
         elif msg.split(',')[2] == '1':
@@ -103,12 +106,13 @@ class AIS_Parser():
             if msg.split(',')[3] == self.multi_msg_dict['msg_id']:
                 msg_dict['message'] = (self.multi_msg_dict['msg'],msg)
                 self.multi_msg_dict = {} 
+                complete_msg = True
             else:
                 log.warning('Dangling multi line message: ' + str(msg))
         else:
             log.warning('Unprocessed msg: ' + str(msg))
         
-        return msg_dict
+        return msg_dict, complete_msg
     
     def style_parse(self, msg):
         # IMIS metadata format. 
