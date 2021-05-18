@@ -53,7 +53,7 @@ class AIS_Parser():
                 prev_g = self.last_chunk.rfind('\\g')
                 prev_msg = self.last_chunk[max(prev_s, prev_g):]
                 chunk_list = (prev_msg + msg_chunk).split('\r\n')
-                log.info('Combining prev chunk with this chunk: {0}'.format(chunk_list[0]))
+                log.debug('Combining prev chunk with this chunk: {0}'.format(chunk_list[0]))
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
             
         elif self.ais_meta_style == 'NONE':
@@ -76,11 +76,11 @@ class AIS_Parser():
                 if complete_msg:
                     msg_dict_list.append(msg_dict)   
             except:
-                log.debug('-------------------------------------------------------')
+                log.info('-------------------------------------------------------')
                 log.info('Problem while parsing AIS message: {0}'.format(str(msg)))
-                log.debug('Parsing Error:' + traceback.format_exc()) 
-                log.debug('Dict: {0}'.format(msg_dict))
-                log.debug('Multi-Dict: {0}'.format(self.multi_msg_dict))
+                log.info('Parsing Error:' + traceback.format_exc()) 
+                log.info('Dict: {0}'.format(msg_dict))
+                log.info('Multi-Dict: {0}'.format(self.multi_msg_dict))
                 log.debug("\n".join(chunk_list))
 
         self.last_chunk = msg_chunk
