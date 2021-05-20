@@ -58,7 +58,7 @@ class AIS_Parser():
                 #Check if last message is complete. If not then drop it so that it gets handled by 
                 #next incomplete starter.
                 if not re.match(r'^\!..VD(.*?)[^_]*[^_][^_]',chunk_list[-1]):
-                    log.debug('Incomplete AIS message in chunk, dropping last message: {0}'.format(chunk_list[-1]))
+                    log.warning('Incomplete AIS message in chunk, dropping last message: {0}'.format(chunk_list[-1]))
                     chunk_list = chunk_list[0:-1]
                 log.debug('Combining prev chunk with this chunk: {0}'.format(chunk_list[0]))
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
