@@ -108,6 +108,7 @@ class AIS_Parser():
                 combo_dict = self.multi_msg_dict
                 combo_dict['ais'] = (self.multi_msg_dict['ais'],msg)
                 combo_dict['header'] = (self.multi_msg_dict['header'],msg_dict['header'])
+                combo_dict['multiline'] = True
                 msg_dict = combo_dict
                 self.multi_msg_dict = {} 
                 complete_msg = True
