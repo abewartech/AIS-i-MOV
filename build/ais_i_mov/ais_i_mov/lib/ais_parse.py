@@ -96,14 +96,13 @@ class AIS_Parser():
 
         #Check if first part of multiline message
         elif msg.split(',')[2] == '1':
-            msg_dict['multiline'] = False
+            msg_dict['multiline'] = True
             self.multi_msg_dict = msg_dict
             self.multi_msg_dict['msg_id'] = msg.split(',')[3]
             complete_msg = False
         
         #Check if second part of multi msg
         elif msg.split(',')[2] == '2':
-            msg_dict['multiline'] = True
             #Check if second part belongs with first part
             if msg.split(',')[3] == self.multi_msg_dict['msg_id']:
                 combo_dict = self.multi_msg_dict
