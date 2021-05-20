@@ -48,7 +48,13 @@ class AIS_Parser():
         # How can I guarentee that the line is started in the right place?
         if self.ais_meta_style == 'IMIS':
             if msg_chunk[0:3] == '\\g:' or  msg_chunk[0:3] == '\\s:':
-                chunk_list = msg_chunk.split('\r\n') 
+                chunk_list = msg_chunk.split('\r\n')
+                 
+                #Check if last message is complete. If not then drop it so that it gets handled by 
+                #next incomplete starter.
+                if bool(re.match(r'\!..VD(.*?)[^_]\*[^_][^_]',chunk_list[-1])) == False:
+                    log.warning('Incomplete AIS message in chunk, dropping last message: {0}'.format(chunk_list[-1]))
+                    chunk_list = chunk_list[0:-1]
             else: 
                 prev_s = self.last_chunk.rfind('\\s')
                 prev_g = self.last_chunk.rfind('\\g')
