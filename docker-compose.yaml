@@ -3,7 +3,7 @@ services:
   # ---------------------------------------------
   # Example of AIS ingestor
   # ---------------------------------------------
-  ais_decoder:
+  ais_ingestor:
     # Consumes encoded AIS from rabbit and returns decoded AIS to rabbit.
     hostname: ${PROJECT_NAME}_ais_mover
     build:
