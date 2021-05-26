@@ -174,7 +174,7 @@ class AIS_Parser():
             parsed_line['ais'] = ais
 
         elif self.ais_style == 'NONE':
-			parsed_line['ais'] = msg
+            parsed_line['ais'] = msg
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['event_time'] = ''
             parsed_line['routing_key'] = self.routing_key
