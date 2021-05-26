@@ -70,7 +70,7 @@ class AIS_Parser():
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
             
         elif self.ais_meta_style == 'None':
-            msg_chunk = msg_chunk[msg_chunk.index('\!'):]
+            msg_chunk = msg_chunk[msg_chunk.index('!'):]
             chunk_list = msg_chunk.split('\n') 
         else: 
             #Split the chunk into a list of messages
