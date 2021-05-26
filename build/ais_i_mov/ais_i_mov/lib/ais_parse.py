@@ -69,13 +69,12 @@ class AIS_Parser():
                 log.debug('Combining prev chunk with this chunk: {0}'.format(chunk_list[0]))
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
             
-        elif self.ais_meta_style == 'NONE':
-            msg_chunk = msg_chunk[msg_chunk.index('\\!'):]
+        elif self.ais_meta_style == 'None':
+            msg_chunk = msg_chunk[msg_chunk.index('\!'):]
             chunk_list = msg_chunk.split('\n') 
         else: 
-            pass
-        #Split the chunk into a list of messages
-        # chunk_list = msg_chunk.split('\n') 
+            #Split the chunk into a list of messages
+			chunk_list = msg_chunk.split('\n') 
         msg_dict_list = [] 
         
         for msg in chunk_list:    
