@@ -176,7 +176,7 @@ class AIS_Parser():
         elif self.ais_meta_style == 'None':
             parsed_line['ais'] = msg
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
-            parsed_line['event_time'] = ''
+            parsed_line['event_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['routing_key'] = self.routing_key
         else: 
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
