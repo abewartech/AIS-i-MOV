@@ -74,7 +74,7 @@ class AIS_Parser():
             chunk_list = msg_chunk.split('\n') 
         else: 
             #Split the chunk into a list of messages
-			chunk_list = msg_chunk.split('\n') 
+            chunk_list = msg_chunk.split('\n') 
         msg_dict_list = [] 
         
         for msg in chunk_list:    
