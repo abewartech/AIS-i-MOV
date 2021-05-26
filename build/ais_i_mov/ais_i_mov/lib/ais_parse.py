@@ -173,7 +173,7 @@ class AIS_Parser():
                 log.debug('No timestamp on this message')
             parsed_line['ais'] = ais
 
-        elif self.ais_style == 'NONE':
+        elif self.ais_meta_style == 'None':
             parsed_line['ais'] = msg
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['event_time'] = ''
