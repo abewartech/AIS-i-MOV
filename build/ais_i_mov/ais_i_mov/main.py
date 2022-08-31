@@ -49,20 +49,14 @@ def setup_logging():
 
 def read_socket(data_logger):
     # Create a TCP/IP socket
-    log.info('Opening socket')
-    # sock = socket.socket()
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    log.info('Opening socket') 
+    sock = socket.socket()
     log.info('Setting socket timeout to %s seconds.',os.getenv('SOCKET_TIMEOUT'))
     sock.settimeout(int(os.getenv('SOCKET_TIMEOUT')))
     server_address = (os.getenv('SOURCE_HOST'),int(os.getenv('SOURCE_PORT')))
-    log.info('Connecting to '+str(server_address))
-    # sock.connect(server_address)
-
-    # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    log.info('Connecting to '+str(server_address)) 
     sock.connect(server_address)
-    # sock.listen(1)
-    # connection, addr = sock.accept() 
-
+    
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
     ais_parser = lib.ais_parse.AIS_Parser()
