@@ -57,13 +57,42 @@ def read_socket(data_logger):
     log.info('Connecting to '+str(server_address))
     sock.connect(server_address)
 
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(server_address)
+    s.listen(1)
+    connection, addr = s.accept() 
+
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
     ais_parser = lib.ais_parse.AIS_Parser()
     try:
         log.info('Streaming AIS...')
+
+#         data = b''  # recv() does return bytes
+        # while True:
+        #     try:
+        #         chunk = conn.recv(4096)  # some 2^n number
+        #         if not chunk:  # chunk == ''
+        #             break
+
+        #         data += chunk
+
+        #     except socket.error:
+        #         conn.close()
+        #         break
+
         while True:
-            data_chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
+            # https://stackoverflow.com/questions/47758023/python3-socket-random-partial-result-on-socket-receive
+            while True:
+                try:
+                    chunk = connection.recv(int(os.getenv('CHUNK_BYTES')))
+                    if not chunk:
+                        break
+                except socket.error:
+                    connection.close()
+                    break
+                data_chunk =+ chunk
+
             log.debug('----------------')
             chunk_len = len(data_chunk)
             if chunk_len <  316:
@@ -141,9 +170,9 @@ if __name__ == "__main__":
         main(ARGS)
     except KeyboardInterrupt:
         log.warning('Keyboard Interrupt. Exiting...')
-        # os._exit(0)
+        os._exit(0)
     except Exception as error:
         log.error('Other exception. Exiting with code 1...')
         log.error(traceback.format_exc())
         log.error(error)
-        # os._exit(1)
+        os._exit(1)
