@@ -98,7 +98,19 @@ class AIS_Parser():
 
         self.last_chunk = msg_chunk
         return msg_dict_list
-    
+     
+# ais_ingestor_1  | 2022-08-31 07:17:15,528 - DEBUG - ais_parse - -------------------------------------------------------
+# ais_ingestor_1  | 2022-08-31 07:17:15,529 - DEBUG - ais_parse - Problem while parsing AIS message: !AIVDM,1,1,,A,D02<HSiitB?b<`E6D0,4*73
+# ais_ingestor_1  | 2022-08-31 07:17:15,529 - DEBUG - ais_parse - Parsing Error:Traceback (most recent call last):
+# ais_ingestor_1  |   File "/usr/local/ais_i_mov/lib/ais_parse.py", line 88, in parse_and_seperate
+# ais_ingestor_1  |     msg_dict, complete_msg = self.aivdm_parse(msg_dict)
+# ais_ingestor_1  |   File "/usr/local/ais_i_mov/lib/ais_parse.py", line 103, in aivdm_parse
+# ais_ingestor_1  |     msg = msg_dict['ais']
+# ais_ingestor_1  | KeyError: 'ais'
+# ais_ingestor_1  | 
+# ais_ingestor_1  | 2022-08-31 07:17:15,529 - DEBUG - ais_parse - Dict: {'server_time': '2022-08-31T07:17:15.528784', 'event_time': '', 'routing_key': 'encoded_ais.aishub.all'}
+
+
     def aivdm_parse(self, msg_dict):
         msg = msg_dict['ais']
         complete_msg = False
@@ -179,6 +191,7 @@ class AIS_Parser():
             parsed_line['event_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['routing_key'] = self.routing_key
         else: 
+            parsed_line['ais'] = msg
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['event_time'] = ''
             parsed_line['routing_key'] = self.routing_key 
