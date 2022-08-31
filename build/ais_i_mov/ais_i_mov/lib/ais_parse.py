@@ -41,7 +41,7 @@ class AIS_Parser():
         # !ABVDM,1,1,,B,B8u:Qa0000DwdMs8?LrDio053P06,0*59
 
         #Place start of message at start of chunk
-        log.debug(msg_chunk)
+        # log.debug(msg_chunk)
         msg_chunk = msg_chunk.decode('utf-8')
 
         # This probably needs a little more thinking. How to index chunks when there are different metadata styles? 
@@ -69,11 +69,12 @@ class AIS_Parser():
                 log.debug('Combining prev chunk with this chunk: {0}'.format(chunk_list[0]))
             # msg_chunk = msg_chunk[msg_chunk.index('\\s'):]
             
-        elif self.ais_meta_style == 'None':
-            msg_chunk = msg_chunk[msg_chunk.index('!'):]
-            chunk_list = msg_chunk.split('\n') 
+        # else self.ais_meta_style == 'None':
+        #     msg_chunk = msg_chunk[msg_chunk.index('!'):]
+        #     chunk_list = msg_chunk.split('\n') 
         else: 
             #Split the chunk into a list of messages
+            msg_chunk = msg_chunk[msg_chunk.index('!'):]
             chunk_list = msg_chunk.split('\n') 
         msg_dict_list = [] 
         

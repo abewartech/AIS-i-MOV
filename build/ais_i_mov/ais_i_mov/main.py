@@ -72,9 +72,9 @@ def read_socket(data_logger):
                     chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
                     log.debug('Chunk received')
                     valid_chunk = re.search(b'[0]\*[0-9a-fA-F]+$', chunk)
-                    if not chunk:
-                        log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
-                        break
+                    # if not chunk:
+                    #     log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
+                    #     break
                     if valid_chunk is not None:
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
@@ -94,7 +94,10 @@ def read_socket(data_logger):
             log.debug('Chunk start: {0} ...'.format(data_chunk[0:row_len+1]))
             log.debug('Chunk end: ... {0}'.format(data_chunk[-row_len-1:]))
             if len(data_chunk) > 2:
-                msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
+                try:
+                    msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
+                except:
+                    log.info('Problem parsing message')
                 for msg in msg_list:
                     rabbit_publisher.produce(msg)
                     # log.info(msg['ais'])
