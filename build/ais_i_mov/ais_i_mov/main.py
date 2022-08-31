@@ -59,7 +59,7 @@ def read_socket(data_logger):
     # sock.connect(server_address)
 
     # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind(server_address)
+    sock.connect(server_address)
     sock.listen(1)
     connection, addr = sock.accept() 
 
