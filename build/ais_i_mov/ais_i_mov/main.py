@@ -73,7 +73,7 @@ def read_socket(data_logger):
                     if not chunk:
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
-                    if chunk.endswith('\r'):
+                    if chunk.endswith(b'\r'):
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
                     data_chunk += chunk
