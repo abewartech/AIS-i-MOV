@@ -71,7 +71,7 @@ def read_socket(data_logger):
                 try:
                     chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
                     log.debug('Chunk received')
-                    valid_chunk = re.search('[0]\*[0-9a-fA-F]+$', chunk)
+                    valid_chunk = re.search(b'[0]\*[0-9a-fA-F]+$', chunk)
                     if not chunk:
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
