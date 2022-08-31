@@ -73,7 +73,7 @@ def read_socket(data_logger):
                 except socket.error:
                     # sock.close()
                     break
-                data_chunk =+ chunk
+                data_chunk += chunk
 
             log.debug('----------------')
             chunk_len = len(data_chunk)
