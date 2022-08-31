@@ -60,37 +60,24 @@ def read_socket(data_logger):
 
     # s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.connect(server_address)
-    sock.listen(1)
-    connection, addr = sock.accept() 
+    # sock.listen(1)
+    # connection, addr = sock.accept() 
 
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
     ais_parser = lib.ais_parse.AIS_Parser()
     try:
-        log.info('Streaming AIS...')
-
-#         data = b''  # recv() does return bytes
-        # while True:
-        #     try:
-        #         chunk = conn.recv(4096)  # some 2^n number
-        #         if not chunk:  # chunk == ''
-        #             break
-
-        #         data += chunk
-
-        #     except socket.error:
-        #         conn.close()
-        #         break
+        log.info('Streaming AIS...') 
 
         while True:
             # https://stackoverflow.com/questions/47758023/python3-socket-random-partial-result-on-socket-receive
             while True:
                 try:
-                    chunk = connection.recv(int(os.getenv('CHUNK_BYTES')))
+                    chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
                     if not chunk:
                         break
                 except socket.error:
-                    connection.close()
+                    # sock.close()
                     break
                 data_chunk =+ chunk
 
