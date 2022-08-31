@@ -185,15 +185,12 @@ class AIS_Parser():
                 log.debug('No timestamp on this message')
             parsed_line['ais'] = ais
 
-        elif self.ais_meta_style == 'None':
+        else:
             parsed_line['ais'] = msg
+            parsed_line['header'] = None 
             parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['event_time'] = datetime.datetime.utcnow().isoformat()
             parsed_line['routing_key'] = self.routing_key
-        else: 
-            parsed_line['ais'] = msg
-            parsed_line['server_time'] = datetime.datetime.utcnow().isoformat()
-            parsed_line['event_time'] = ''
-            parsed_line['routing_key'] = self.routing_key 
+         
         return parsed_line   
 

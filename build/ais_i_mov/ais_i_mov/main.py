@@ -13,6 +13,7 @@ import os
 import traceback
 import socket
 import datetime
+import re
 
 from kombu import Connection, Exchange, Queue, binding
 
@@ -70,10 +71,11 @@ def read_socket(data_logger):
                 try:
                     chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
                     log.debug('Chunk received')
+                    valid_chunk = re.search('[0]\*[0-9a-fA-F]+$', chunk)
                     if not chunk:
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
-                    if chunk.endswith(b'\r'):
+                    if valid_chunk is not None:
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
                     data_chunk += chunk
