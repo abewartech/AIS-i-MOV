@@ -71,12 +71,16 @@ def read_socket(data_logger):
                     chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
                     log.debug('Chunk received')
                     if not chunk:
-                        log.debug('Incomplete chunk, reading more: len = {}'.format(len(chunk)))
+                        log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
+                    if chunk.endswith('\r'):
+                        log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
+                        break
+                    data_chunk += chunk
                 except socket.error:
                     # sock.close()
                     break
-                data_chunk += chunk
+                
 
             log.debug('----------------')
             chunk_len = len(data_chunk)
