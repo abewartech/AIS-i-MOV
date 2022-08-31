@@ -65,6 +65,7 @@ def read_socket(data_logger):
 
         while True:
             # https://stackoverflow.com/questions/47758023/python3-socket-random-partial-result-on-socket-receive
+            data_chunk = b''
             while True:
                 try:
                     chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
