@@ -70,6 +70,7 @@ def read_socket(data_logger):
                 try:
                     chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
                     if not chunk:
+                        log.debug('Incomplete chunk, reading more: len = {}'.format(len(chunk)))
                         break
                 except socket.error:
                     # sock.close()
