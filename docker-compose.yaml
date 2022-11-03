@@ -7,7 +7,7 @@ services:
     # Consumes encoded AIS from rabbit and returns decoded AIS to rabbit.
     hostname: ${PROJECT_NAME}_ais_mover
     build:
-      context: ./build/ais_i_mov
+      context: .
       dockerfile: Dockerfile
     env_file:
       - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
