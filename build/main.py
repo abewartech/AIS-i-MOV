@@ -28,6 +28,9 @@ import lib.ais_parse
     # - Routing key
 # This is then written to a log file and passed to rabbit.
 
+def WatchDogHandler():
+    log.error('No messages published within 300 seconds. Exiting container...')
+    os._exit(1)
 
 log = logging.getLogger('main')
 # log.setLevel('DEBUG')
@@ -61,6 +64,7 @@ def read_socket(data_logger):
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
     ais_parser = lib.ais_parse.AIS_Parser()
+    watchdog = lib.funcs.Watchdog(300, WatchDogHandler)   
     try:
         log.info('Streaming AIS...') 
 
@@ -79,8 +83,9 @@ def read_socket(data_logger):
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
                     data_chunk += chunk
+                    
                 except socket.error:
-                    # sock.close()
+                    # sock.close() 
                     break
                 
 
@@ -96,12 +101,14 @@ def read_socket(data_logger):
             if len(data_chunk) > 2:
                 try:
                     msg_list = ais_parser.parse_and_seperate(data_chunk,data_logger)
+                    watchdog.reset()
                 except:
                     log.info('Problem parsing message')
                 for msg in msg_list:
                     rabbit_publisher.produce(msg)
                     # log.info(msg['ais'])
                     pass
+                
             else:
                 continue
     except:
