@@ -53,13 +53,13 @@ def setup_logging():
 
 def read_socket(data_logger):
     # Create a TCP/IP socket
-    log.info('Opening socket') 
-    sock = socket.socket()
-    log.info('Setting socket timeout to %s seconds.',os.getenv('SOCKET_TIMEOUT'))
-    sock.settimeout(int(os.getenv('SOCKET_TIMEOUT')))
-    server_address = (os.getenv('SOURCE_HOST'),int(os.getenv('SOURCE_PORT')))
-    log.info('Connecting to '+str(server_address)) 
-    sock.connect(server_address)
+    # log.info('Opening socket') 
+    # sock = socket.socket()
+    # log.info('Setting socket timeout to %s seconds.',os.getenv('SOCKET_TIMEOUT'))
+    # sock.settimeout(int(os.getenv('SOCKET_TIMEOUT')))
+    # server_address = (os.getenv('SOURCE_HOST'),int(os.getenv('SOURCE_PORT')))
+    # log.info('Connecting to '+str(server_address)) 
+    # sock.connect(server_address)
     
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
@@ -67,13 +67,13 @@ def read_socket(data_logger):
     watchdog = lib.funcs.Watchdog(300, WatchDogHandler)   
     try:
         log.info('Streaming AIS...') 
-
         while True:
             # https://stackoverflow.com/questions/47758023/python3-socket-random-partial-result-on-socket-receive
             data_chunk = b''
             while True:
                 try:
-                    chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
+                    # chunk = sock.recv(int(os.getenv('CHUNK_BYTES')))
+                    chunk = b''
                     log.debug('Chunk received')
                     valid_chunk = re.search(b'[0]\*[0-9a-fA-F]+$', chunk)
                     # if not chunk:
@@ -86,9 +86,7 @@ def read_socket(data_logger):
                     
                 except socket.error:
                     # sock.close() 
-                    break
-                
-
+                    break 
             log.debug('----------------')
             chunk_len = len(data_chunk)
             if chunk_len <  316:
@@ -116,7 +114,7 @@ def read_socket(data_logger):
         log.error('Last MSG: ' + str(msg))
     finally:
         log.warning('Closing socket')
-        sock.close() 
+        # sock.close() 
         time.sleep(10)
  
 def do_work():  
