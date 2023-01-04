@@ -94,7 +94,7 @@ class Rabbit_Consumer(ConsumerMixin):
         queue = Queue(name=test_q_name, 
                         exchange=self.exchange,
                         max_length = 1000, 
-                        routing_key=os.getenv('PRODUCE_KEY'))
+                        routing_key=os.getenv('MOV_KEY'))
         queue.maybe_bind(self.conn)
         queue.declare()
         return
@@ -112,12 +112,12 @@ class Rabbit_Producer(object):
     def __init__(self):
         log.info('Setting up RabbitMQ sink interface...') 
         # Key to consume from:
-        self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('SNK_RABBITMQ_DEFAULT_USER'),
-                                                            os.getenv('SNK_RABBITMQ_DEFAULT_PASS'),
-                                                            os.getenv('SNK_RABBIT_HOST'),
-                                                            os.getenv('SNK_RABBIT_MSG_PORT'))
+        self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('MOV_RABBITMQ_DEFAULT_USER'),
+                                                            os.getenv('MOV_RABBITMQ_DEFAULT_PASS'),
+                                                            os.getenv('MOV_RABBIT_HOST'),
+                                                            os.getenv('MOV_RABBIT_MSG_PORT'))
         log.info('Source/Sink Rabbit is at {0}'.format(self.rabbit_url))
-        self.exchange = Exchange(os.getenv('SNK_RABBIT_EXCHANGE'), type="topic")
+        self.exchange = Exchange(os.getenv('MOV_RABBIT_EXCHANGE'), type="topic")
         self.connection = Connection(self.rabbit_url) #This connection is only used for the dummy queue...
  
         self.sink = Producer(exchange=self.exchange,
@@ -149,102 +149,99 @@ class Rabbit_Producer(object):
         time.sleep(float(interval)+1)
         return
 
-
-class Rabbit_ConsumerProducer(ConsumerProducerMixin):
-
-    def __init__(self):
-        log.info('Setting up RabbitMQ source/sink interface...') 
-        # Key to consume from:
-        self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('SRC_RABBITMQ_DEFAULT_USER'),
-                                                            os.getenv('SRC_RABBITMQ_DEFAULT_PASS'),
-                                                            os.getenv('SRC_RABBIT_HOST'),
-                                                            os.getenv('SRC_RABBIT_MSG_PORT'))
-        log.debug('Source/Sink Rabbit is at {0}'.format(self.rabbit_url))
-        self.exchange = Exchange(os.getenv('SRC_RABBIT_EXCHANGE'), type="topic")
-        self.connection = Connection(self.rabbit_url) #This connection is only used for the dummy queue...
-        self.bind_to_keys()
-        self.create_test_queue()
-        self.sink = Producer(exchange=self.exchange,
-                              channel=self.connection,
-                              serializer ='json' )
-
-        log.info('ConsumerProducer init complete')  
+# class Rabbit_ConsumerProducer(ConsumerProducerMixin):
+#     def __init__(self):
+#         log.info('Setting up RabbitMQ source/sink interface...') 
+#         # Key to consume from:
+#         self.rabbit_url = "amqp://{0}:{1}@{2}:{3}/".format(os.getenv('MOV_RABBITMQ_DEFAULT_USER'),
+#                                                             os.getenv('MOV_RABBITMQ_DEFAULT_PASS'),
+#                                                             os.getenv('MOV_RABBIT_HOST'),
+#                                                             os.getenv('MOV_RABBIT_MSG_PORT'))
+#         log.debug('Source/Sink Rabbit is at {0}'.format(self.rabbit_url))
+#         self.exchange = Exchange(os.getenv('MOV_RABBIT_EXCHANGE'), type="topic")
+#         self.connection = Connection(self.rabbit_url) #This connection is only used for the dummy queue...
+#         self.bind_to_keys()
+#         self.create_test_queue()
+#         self.sink = Producer(exchange=self.exchange,
+#                               channel=self.connection,
+#                               serializer ='json' )
+#         log.info('ConsumerProducer init complete')  
  
 
-    def get_consumers(self, Consumer, channel):
-        return [Consumer(queues=self.queue,
-                        on_message=self.on_message,
-                        accept={'application/json'},
-                        prefetch_count=1)]
+#     def get_consumers(self, Consumer, channel):
+#         return [Consumer(queues=self.queue,
+#                         on_message=self.on_message,
+#                         accept={'application/json'},
+#                         prefetch_count=1)]
 
-    def message_processor(self, message):
-        # This function is meant to be overloaded to provide some kind of functionality
-        msg_dict = json.loads(message.body.decode('utf-8'))
-        log.info('Message :' + str(msg_dict))
-        return msg_dict
+#     def message_processor(self, message):
+#         # This function is meant to be overloaded to provide some kind of functionality
+#         msg_dict = json.loads(message.body.decode('utf-8'))
+#         log.info('Message :' + str(msg_dict))
+#         return msg_dict
  
 
-    def on_message(self, message):
-        log.info('Msg type %s received: %s',type(message.body),message.body)
-        if message.delivery_info['redelivered']:
-            message.reject()
-            return
-        else:
-            message.ack()
-        try:            
-            result = self.message_processor(message)
-            producer = self.connection.ensure(self.sink, self.sink.publish, errback=self.errback, interval_start = 1.0)
-            producer(result, routing_key=os.getenv('PRODUCE_KEY'))
+#     def on_message(self, message):
+#         log.info('Msg type %s received: %s',type(message.body),message.body)
+#         if message.delivery_info['redelivered']:
+#             message.reject()
+#             return
+#         else:
+#             message.ack()
+#         try:            
+#             result = self.message_processor(message)
+#             producer = self.connection.ensure(self.sink, self.sink.publish, errback=self.errback, interval_start = 1.0)
+#             producer(result, routing_key=os.getenv('INGEST_KEY'))
 
-        except Exception as err:
-                log.error('Error in message processor: {0}'.format(err))
+#         except Exception as err:
+#                 log.error('Error in message processor: {0}'.format(err))
 
 
-    def bind_to_keys(self):
-        # takes the list of routing keys in the config file
-        # and create a queue bound to them.
-        log.info('Creating queue and binding keys')
-        topic_binds = []
-        keys = json.loads(os.getenv('SRC_KEYS'))
-        for key in keys:
-            log.info('    -Key: %s',key)
-            topic_bind = binding(self.exchange, routing_key=key)
-            topic_binds.append(topic_bind)
-        self.source_keys = topic_binds      
-        queue_name = os.getenv('SRC_QUEUE')
-        self.queue = Queue(name=queue_name,
-                        exchange=self.exchange,
-                        bindings=self.source_keys,
-                        max_length = 10000000)
-        self.queue.maybe_bind(self.connection)
-        self.queue.declare()
-        log.info('Source queues: %s',self.queue)
-        return
+#     def bind_to_keys(self):
+#         # takes the list of routing keys in the config file
+#         # and create a queue bound to them.
+#         log.info('Creating queue and binding keys')
+#         topic_binds = []
+#         keys = json.loads(os.getenv('SRC_KEYS'))
+#         for key in keys:
+#             log.info('    -Key: %s',key)
+#             topic_bind = binding(self.exchange, routing_key=key)
+#             topic_binds.append(topic_bind)
+#         self.source_keys = topic_binds      
+#         queue_name = os.getenv('SRC_QUEUE')
+#         self.queue = Queue(name=queue_name,
+#                         exchange=self.exchange,
+#                         bindings=self.source_keys,
+#                         max_length = 10000000)
+#         self.queue.maybe_bind(self.connection)
+#         self.queue.declare()
+#         log.info('Source queues: %s',self.queue)
+#         return
 
-    def errback(self, exc, interval):
-        log.warning('Consumer error: %r', exc)
-        log.warning('Retry in %s +1  seconds.', interval)
-        time.sleep(float(interval)+1)
-        return
+#     def errback(self, exc, interval):
+#         log.warning('Consumer error: %r', exc)
+#         log.warning('Retry in %s +1  seconds.', interval)
+#         time.sleep(float(interval)+1)
+#         return
  
-    def create_test_queue(self):
-        # Create a dummy queue on the rabbitmq server. Useful for debugging
-        log.info('Creating Source Test Queue')  
-        test_q_name = "AAA-{0}-test-source".format(os.getenv('PROJECT_NAME'))
-        queue = Queue(name=test_q_name, 
-                        exchange=self.exchange,
-                        max_length = 100, 
-                        routing_key=self.source_keys)
-        queue.maybe_bind(self.connection)
-        queue.declare()
+#     def create_test_queue(self):
+#         # Create a dummy queue on the rabbitmq server. Useful for debugging
+#         log.info('Creating Source Test Queue')  
+#         test_q_name = "AAA-{0}-test-source".format(os.getenv('PROJECT_NAME'))
+#         queue = Queue(name=test_q_name, 
+#                         exchange=self.exchange,
+#                         max_length = 100, 
+#                         routing_key=self.source_keys)
+#         queue.maybe_bind(self.connection)
+#         queue.declare()
 
-        log.info('Creating Sink Test Queue')  
-        test_q_name = "AAA-{0}-test-sink".format(os.getenv('PROJECT_NAME'))
-        queue = Queue(name=test_q_name, 
-                        exchange=self.exchange,
-                        max_length = 100, 
-                        routing_key=os.getenv('PRODUCE_KEY'))
-        queue.maybe_bind(self.connection)
-        queue.declare()
+#         log.info('Creating Sink Test Queue')  
+#         test_q_name = "AAA-{0}-test-sink".format(os.getenv('PROJECT_NAME'))
+#         queue = Queue(name=test_q_name, 
+#                         exchange=self.exchange,
+#                         max_length = 100, 
+#                         routing_key=os.getenv('INGEST_KEY'))
+#         queue.maybe_bind(self.connection)
+#         queue.declare()
 
-        return
+#         return

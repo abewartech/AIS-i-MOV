@@ -19,7 +19,7 @@ class AIS_Parser():
     # AIS message + parsed metadata to rabbit. 
     # Parsing style depends on the source of data and is controlled by the .env vars
     def __init__(self):
-        self.routing_key = os.getenv('PRODUCE_KEY')
+        self.routing_key = os.getenv('MOV_KEY')
         self.ais_meta_style = os.getenv('AIS_STYLE')
         log.debug('Sending to R-Key: {0}'.format(self.routing_key))
         log.debug('AIS Style: {0}'.format(self.ais_meta_style))
