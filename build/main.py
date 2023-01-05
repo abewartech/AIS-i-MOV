@@ -76,16 +76,16 @@ def read_socket(data_logger):
                     
                     log.debug('Chunk received')
                     valid_chunk = re.search(b'[0]\*[0-9a-fA-F]+$', chunk)
-                    # if not chunk:
-                    #     log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
-                    #     break
+                    if not chunk:
+                        log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
+                        break
                     if valid_chunk is not None:
                         log.debug('Complete chunk, reading more: len = {}'.format(len(chunk)))
                         break
                     data_chunk += chunk
                     
                 except socket.error:
-                    # sock.close() 
+                    sock.close() 
                     break 
             log.debug('----------------')
             chunk_len = len(data_chunk)
