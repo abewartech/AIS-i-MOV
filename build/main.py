@@ -14,7 +14,9 @@ import traceback
 import socket
 import datetime
 import re
+from dotenv import load_dotenv
 
+load_dotenv()
 from kombu import Connection, Exchange, Queue, binding
 
 import lib.funcs
@@ -43,13 +45,25 @@ def setup_logging():
         logger.setLevel(logging.INFO)
         log_path = os.getenv('LOG_DIR')
         log_file = os.getenv('LOG_NAME')
-        if not os.path.exists(log_path): 
-            os.mkdir(log_path)
+        os.makedirs(log_path, exist_ok=True)
         log_file_handler = logging.handlers.TimedRotatingFileHandler(os.path.join(log_path,log_file), when='midnight')
         log_file_handler.setFormatter( logging.Formatter('%(asctime)s: %(message)s') )
         log_file_handler.setLevel(logging.DEBUG)
         logger.addHandler(log_file_handler)
     return logger
+
+def read_files(files_folder, data_logget):
+    # Create RabbitMQ publisher
+    # rabbit_publisher = lib.rabbit.Rabbit_Producer()
+    ais_parser = lib.ais_parse.AIS_Parser()
+    msg_list = ais_parser.process_files_in_folder(files_folder)
+    print(len(msg_list))
+    for msg in msg_list:
+        print(msg)
+    #     rabbit_publisher.produce(msg)
+    #     # log.info(msg['ais'])
+    #     pass
+    return
 
 def read_socket(data_logger):
     # Create a TCP/IP socket
@@ -117,7 +131,7 @@ def read_socket(data_logger):
         # sock.close() 
         time.sleep(10)
  
-def do_work():  
+def do_work(folder=None):  
     '''
     This opens a socket to the server that is feeding AIS.
     Collect multiline messages into a single dict.
@@ -126,13 +140,18 @@ def do_work():
     '''
     log.info('Getting ready to do work...') 
     data_logger = setup_logging()
-    try:
-        while True:
-            read_socket(data_logger)
-    except:
-        log.error('Error in main loop:') 
-        log.error(traceback.format_exc())
-        time.sleep(10)
+    if folder:
+        log.info("fuck")
+        read_files(folder, data_logger)
+    else:
+        log.info("No file folder provided.")
+        try:
+            while True:
+                read_socket(data_logger)
+        except:
+            log.error('Error in main loop:') 
+            log.error(traceback.format_exc())
+            time.sleep(10)
 
 
     log.info('Worker shutdown...')
@@ -147,8 +166,9 @@ def main(args):
         level=getattr(logging, args.loglevel))
 
     log.setLevel(getattr(logging, args.loglevel))
-    log.info('ARGS: {0}'.format(ARGS)) 
-    do_work()
+    log.info('ARGS: {0}'.format(args))
+    folder = args.folder or os.getenv("FILE_FOLDER", None)
+    do_work(folder)
     log.warning('Script Ended...') 
 
 if __name__ == "__main__":

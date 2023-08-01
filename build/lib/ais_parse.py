@@ -11,8 +11,17 @@ import datetime
 import traceback
 import re
 # from re import X
+import rarfile
+import tempfile
+import os
+import rarfile
+import shutil
+import tempfile
+from multiprocessing import Pool
 
 log = logging.getLogger('ais_parse')
+
+TIMESTAMP_DIVISOR = 1000  # because the timestamp is in milliseconds
 
 class AIS_Parser():
     # This takes a chunk of raw AIS+metadata messages and then fires off a dictionary of encoded 
@@ -26,6 +35,132 @@ class AIS_Parser():
         self.multi_msg_dict = {} 
         self.last_chunk = ''
 
+
+    def read_file_lines(self, file_io):
+        with open(file_io, "r") as file:
+            content = file.readlines()
+        return content
+    
+
+
+
+    def parse_line(self, line):
+        _, header, ais_data = line.split('\\')
+        header_items = header.strip('\\').split(',')
+        header_dict = {item.split(':', 1)[0]: item.split(':', 1)[1] for item in header_items}
+        file_line_parts = [f.split(',') for f in line.replace("\n", '').split('\\') if f]
+        timestamp, number_of_lines, number_on_this_line, message_id = file_line_parts[0][0], int(file_line_parts[1][1]), file_line_parts[1][2], file_line_parts[1][3]
+        timestamp_seconds = timestamp.rsplit(":", 1)[-1].split("*", 1)[0]
+        event_time_iso = datetime.datetime.fromtimestamp(int(timestamp_seconds)/TIMESTAMP_DIVISOR, datetime.timezone.utc).isoformat(timespec='seconds')
+        return ais_data, header_dict, number_of_lines, message_id, event_time_iso    
+    
+
+    def parse_ais(self, file_content, message_format=None):
+        """
+        Parses AIS data from the given file content.
+        """
+        MIN_LINE_LENGTH = 10
+
+
+        ais_dict_list = []
+        index = 0
+        while index < len(file_content):
+            line = file_content[index]
+            if len(line) < MIN_LINE_LENGTH:
+                index += 1
+                continue
+                
+            ais_data, meta_dict, number_of_lines, message_id, event_time_iso = self.parse_line(line)
+
+
+            multiline = number_of_lines > 1
+
+            if multiline:
+                for m in range(number_of_lines-1):
+                    index += 1
+                    line = file_content[index]
+
+                    if len(line) < MIN_LINE_LENGTH:
+                        continue
+                    ais_data_next, meta_dict_next, _, _, _ = self.parse_line(line)
+                    if isinstance(ais_data, str):
+                        ais_data = [ais_data, ais_data_next]
+                        meta_dict = [meta_dict, meta_dict_next]
+                    else:
+                        ais_data.append(ais_data_next)
+                        meta_dict.append(meta_dict_next)
+
+            event_time = event_time_iso
+
+            ais_dict ={
+                "ais": ais_data,
+                "header": meta_dict,
+                "server_time": datetime.datetime.utcnow().isoformat(),
+                "event_time": event_time,
+                "routing_key": None,
+                "multiline": multiline,
+                "msg_id": message_id
+            }
+            ais_dict_list.append(ais_dict)
+
+            index += 1
+
+        return ais_dict_list
+
+
+
+    
+    def process_file(self, file_path):
+        """
+        Process a single file. Extracts contents if its a rar file, process and delete extracted file.
+        """
+        COMPRESSED_FORMATS = ["rar"]
+        NMEA_FILE_FORMATS = ["nmea"]
+        processed_data = []
+
+        file_extension = file_path.split(".")[-1]
+        print('rar')
+        print(file_extension)
+        print(file_path)
+
+        if file_extension in COMPRESSED_FORMATS:
+            print("good1")
+            with rarfile.RarFile(file_path, 'r') as compressed_file:
+                # Each rar file is expected to have exactly one file
+                extracted_file_name = compressed_file.namelist()[0]
+                temp_dir = tempfile.mkdtemp()
+                extracted_file_path = os.path.join(temp_dir, extracted_file_name)
+                compressed_file.extract(extracted_file_name, path=temp_dir)
+
+                file_path = extracted_file_path
+        file_extension = file_path.split(".")[-1]
+        if file_extension in NMEA_FILE_FORMATS:
+            print("good2")
+            file_content = self.read_file_lines(file_path)
+            processed_data = self.parse_ais(file_content)
+
+        if file_extension in COMPRESSED_FORMATS:
+            print("good3")
+
+            # deletes the temp directory and its contents
+            shutil.rmtree(temp_dir)
+
+        return processed_data
+    
+    def process_files_in_folder(self, folder_path):
+        """
+        Process files in a given folder using multiprocessing. Number of workers equal to CPU count.
+        """
+
+        file_paths = [os.path.join(folder_path, file) for file in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, file))]
+        MAX_WORKERS = os.getenv("MAX_WORKERS", os.cpu_count())
+        num_processes = min(os.cpu_count(), MAX_WORKERS)
+        with Pool(processes=num_processes) as pool:
+            all_processed_data = pool.map(self.process_file, file_paths)
+        print("hey")
+        print(file_paths)
+        return all_processed_data
+    
     def parse_and_seperate(self, msg_chunk, data_logger):
         # Take a chunk of messages and split them up line by line
         # Log incoming messages
