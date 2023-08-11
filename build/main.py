@@ -8,20 +8,23 @@ Created on Tue Oct 24 15:05:19 2017
 import argparse
 import logging
 import os
-import re
+import shutil
 import socket
 import sys
+import tempfile
 import time
 import traceback
+from multiprocessing import Pool
 
 import lib.ais_parse
 import lib.funcs
 import lib.rabbit
-from dotenv import load_dotenv
+import rarfile
+from lib.nmae_reader import stream_file_per_chunk
 
-load_dotenv()
 
-# This whole thing is supposed to take the raw AIS, do a high level split on it:
+# This whole thing is supposed to take the raw AIS, do a
+# high level split on it:
 # - Meta-data
 # - Raw AIS
 # - Header/Footer
@@ -37,7 +40,6 @@ def WatchDogHandler():
 log = logging.getLogger("main")
 
 
-# log.setLevel('DEBUG')
 def setup_logging():
     """
     Setup some nice logging to store incoming data
@@ -59,23 +61,70 @@ def setup_logging():
     return logger
 
 
-def read_files(files_folder, data_logger):
+def process_file(file_path):
+    """
+    Process a single file. Extracts contents if its a rar file, process
+        and delete extracted file.
+    """
+    COMPRESSED_FORMATS = ["rar"]
+    NMEA_FILE_FORMATS = ["nmea"]
+
+    file_extension = file_path.split(".")[-1]
     # Create RabbitMQ publisher
-    # rabbit_publisher = lib.rabbit.Rabbit_Producer()
+    rabbit_publisher = lib.rabbit.Rabbit_Producer()
     ais_parser = lib.ais_parse.AIS_Parser()
-    msg_list = ais_parser.process_files_in_folder(files_folder)
-    print(len(msg_list))
-    for msg in msg_list:
-        print(msg)
-    #     rabbit_publisher.produce(msg)
-    #     # log.info(msg['ais'])
-    #     pass
+    ais_message = lib.ais_parse.AIS_Message()
+
+    if file_extension in COMPRESSED_FORMATS:
+        with rarfile.RarFile(file_path, "r") as compressed_file:
+            # Each rar file is expected to have exactly one file
+            extracted_file_name = compressed_file.namelist()[0]
+            temp_dir = tempfile.mkdtemp()
+            extracted_file_path = os.path.join(temp_dir, extracted_file_name)
+            compressed_file.extract(extracted_file_name, path=temp_dir)
+
+            file_path = extracted_file_path
+    file_extension = file_path.split(".")[-1]
+    if file_extension in NMEA_FILE_FORMATS:
+        for chunk in stream_file_per_chunk(file_path):
+            msg_list = ais_parser.parsing_chunk(chunk, ais_message)
+
+            for msg in msg_list:
+                rabbit_publisher.produce(msg)
+                # log.info(msg["ais"])
+
+    if file_extension in COMPRESSED_FORMATS:
+        # deletes the temp directory and its contents
+        shutil.rmtree(temp_dir)
+
+
+def process_files_in_folder(folder_path):
+    """
+    Process files in a given folder using multiprocessing. Number of workers
+        equal to CPU count.
+    """
+
+    file_paths = [
+        os.path.join(folder_path, file)
+        for file in os.listdir(folder_path)
+        if os.path.isfile(os.path.join(folder_path, file))
+    ]
+    MAX_WORKERS = os.getenv("MAX_WORKERS", os.cpu_count())
+    num_processes = min(os.cpu_count(), MAX_WORKERS)
+    with Pool(processes=num_processes) as pool:
+        pool.map(process_file, file_paths)
+    return
+
+
+def read_files(files_folder, data_logger):
+    process_files_in_folder(files_folder)
     return
 
 
 def read_socket(data_logger):
     # Create a TCP/IP socket
     log.info("Opening socket")
+    # TODO: check how to read this from the files
     sock = socket.socket()
     log.info(
         "Setting socket timeout to %s seconds.", os.getenv("SOCKET_TIMEOUT")
@@ -84,22 +133,23 @@ def read_socket(data_logger):
     server_address = (os.getenv("SOURCE_HOST"), int(os.getenv("SOURCE_PORT")))
     log.info("Connecting to " + str(server_address))
     sock.connect(server_address)
-
-    # Create RabbitMQ publisher
+    # # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.Rabbit_Producer()
     ais_parser = lib.ais_parse.AIS_Parser()
-    watchdog = lib.funcs.Watchdog(300, WatchDogHandler)
+    ais_message = lib.ais_parse.AIS_Message()
+
+    # watchdog = lib.funcs.Watchdog(300, WatchDogHandler)
     try:
         log.info("Streaming AIS...")
         while True:
             # https://stackoverflow.com/questions/47758023/python3-socket-random-partial-result-on-socket-receive
-            data_chunk = b""
             while True:
                 try:
+                    # Check the chunk
                     chunk = sock.recv(int(os.getenv("CHUNK_BYTES")))
 
                     log.debug("Chunk received")
-                    valid_chunk = re.search(b"[0]\*[0-9a-fA-F]+$", chunk)
+
                     if not chunk:
                         log.debug(
                             "Complete chunk, reading more: len = {}".format(
@@ -107,50 +157,39 @@ def read_socket(data_logger):
                             )
                         )
                         break
-                    if valid_chunk is not None:
-                        log.debug(
-                            "Complete chunk, reading more: len = {}".format(
-                                len(chunk)
-                            )
-                        )
-                        break
-                    data_chunk += chunk
 
+                    # Parse the said chunk.
+                    # The parser will only return a list of complete messages
+                    # (multiline or not)
+                    # The remaining, will it be only a piece of a line, or an
+                    # incomplete multiline message, it stays in memory
+                    # waiting for the remaing.
+                    msg_list = ais_parser.parsing_chunk(chunk, ais_message)
+
+                    log.debug("Chunk parsed")
+
+                    # send to rabbitMQ
+                    try:
+                        for msg in msg_list:
+                            data_logger.debug(msg)
+
+                            log.info(msg["ais"])
+                            rabbit_publisher.produce(msg)
+                    except Exception as e:
+                        log.error("Error publishing chunk to Rabbit MQ")
+                        log.error(e)
                 except socket.error:
                     sock.close()
                     break
             log.debug("----------------")
-            chunk_len = len(data_chunk)
-            if chunk_len < 316:
-                row_len = chunk_len
-            else:
-                row_len = 316
-            log.debug("Chunk size: {0}".format(chunk_len))
-            log.debug(
-                "Chunk start: {0} ...".format(data_chunk[0 : row_len + 1])
-            )
-            log.debug("Chunk end: ... {0}".format(data_chunk[-row_len - 1 :]))
-            if len(data_chunk) > 2:
-                try:
-                    msg_list = ais_parser.parse_and_seperate(
-                        data_chunk, data_logger
-                    )
-                    watchdog.reset()
-                except:
-                    log.info("Problem parsing message")
-                for msg in msg_list:
-                    rabbit_publisher.produce(msg)
-                    # log.info(msg['ais'])
-                    pass
-
-            else:
-                continue
-    except:
+    except Exception as e:
+        log.error(e)
         log.error("Error in AIS streaming:" + traceback.format_exc())
         log.error("Last MSG: " + str(msg))
     finally:
         log.warning("Closing socket")
-        # sock.close()
+        # TODO why no watchdog stop? why do timsleep where?
+        sock.close()
         time.sleep(10)
 
 
@@ -171,8 +210,8 @@ def do_work(folder=None):
         try:
             while True:
                 read_socket(data_logger)
-        except:
-            log.error("Error in main loop:")
+        except Exception as e:
+            log.error(f"Error in main loop:{e}")
             log.error(traceback.format_exc())
             time.sleep(10)
 
@@ -183,6 +222,7 @@ def main(args):
     """
     Setup logging, and args, then "do_work"
     """
+    start = time.time()
     logging.basicConfig(
         stream=sys.stdout,
         format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
@@ -193,6 +233,9 @@ def main(args):
     log.info("ARGS: {0}".format(args))
     folder = args.folder or os.getenv("FILE_FOLDER", None)
     do_work(folder)
+    end = time.time()
+    log.info("The work took:")
+    log.info(end - start)
     log.warning("Script Ended...")
 
 

@@ -140,8 +140,9 @@ class Rabbit_Producer(object):
             producer = self.connection.ensure(self.sink, self.sink.publish, errback=self.errback, interval_start = 1.0)
             routing_key = message['routing_key']
             producer(message, routing_key=routing_key)
-        except:
-            log.warning('Failed to send msg to rabbitmq')
+        except Exception as e:
+            error_message = f'Failed to send msg to rabbitmq:{e}' 
+            log.error(error_message)
   
     def errback(self, exc, interval):
         log.warning('Consumer error: %r', exc)
