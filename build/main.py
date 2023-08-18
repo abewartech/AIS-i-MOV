@@ -22,7 +22,6 @@ import lib.rabbit
 import rarfile
 from lib.nmae_reader import stream_file_per_chunk
 
-
 # This whole thing is supposed to take the raw AIS, do a
 # high level split on it:
 # - Meta-data
@@ -71,7 +70,7 @@ def process_file(file_path):
 
     file_extension = file_path.split(".")[-1]
     # Create RabbitMQ publisher
-    rabbit_publisher = lib.rabbit.Rabbit_Producer()
+    rabbit_publisher = lib.rabbit.DockerRabbitProducer()
     ais_parser = lib.ais_parse.AIS_Parser()
     ais_message = lib.ais_parse.AIS_Message()
 
@@ -90,12 +89,17 @@ def process_file(file_path):
             msg_list = ais_parser.parsing_chunk(chunk, ais_message)
 
             for msg in msg_list:
-                rabbit_publisher.produce(msg)
-                # log.info(msg["ais"])
+                try:
+                    log.debug("Sending message to RMQ: " + str(msg))
+                    rabbit_publisher.produce(msg, msg["routing_key"])
+                except Exception as e:
+                    error_message = f"Failed to send msg to rabbitmq:{e}"
+                    log.error(error_message)
 
     if file_extension in COMPRESSED_FORMATS:
         # deletes the temp directory and its contents
         shutil.rmtree(temp_dir)
+    shutil.rmtree(file_path)
 
 
 def process_files_in_folder(folder_path):
@@ -111,13 +115,20 @@ def process_files_in_folder(folder_path):
     ]
     MAX_WORKERS = os.getenv("MAX_WORKERS", os.cpu_count())
     num_processes = min(os.cpu_count(), MAX_WORKERS)
+    num_processes = min(len(file_paths), num_processes)
+
     with Pool(processes=num_processes) as pool:
         pool.map(process_file, file_paths)
     return
 
 
-def read_files(files_folder, data_logger):
-    process_files_in_folder(files_folder)
+def read_files(files_folder):
+    try:
+        while True:
+            process_files_in_folder(files_folder)
+    except Exception as e:
+        log.error("Error reading from file:")
+        log.error(e)
     return
 
 
@@ -169,15 +180,15 @@ def read_socket(data_logger):
                     log.debug("Chunk parsed")
 
                     # send to rabbitMQ
-                    try:
-                        for msg in msg_list:
-                            data_logger.debug(msg)
-
-                            log.info(msg["ais"])
-                            rabbit_publisher.produce(msg)
-                    except Exception as e:
-                        log.error("Error publishing chunk to Rabbit MQ")
-                        log.error(e)
+                    for msg in msg_list:
+                        try:
+                            log.debug("Sending message to RMQ: " + str(msg))
+                            rabbit_publisher.produce(msg, msg["routing_key"])
+                        except Exception as e:
+                            error_message = (
+                                f"Failed to send msg to rabbitmq:{e}"
+                            )
+                            log.error(error_message)
                 except socket.error:
                     sock.close()
                     break
@@ -204,7 +215,7 @@ def do_work(folder=None):
     data_logger = setup_logging()
     if folder:
         log.info("Reading from files.")
-        read_files(folder, data_logger)
+        read_files(folder)
     else:
         log.info("No file folder provided.")
         try:
@@ -231,7 +242,7 @@ def main(args):
 
     log.setLevel(getattr(logging, args.loglevel))
     log.info("ARGS: {0}".format(args))
-    folder = args.folder or os.getenv("FILE_FOLDER", None)
+    folder = args.folder
     do_work(folder)
     end = time.time()
     log.info("The work took:")
