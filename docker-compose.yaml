@@ -21,7 +21,7 @@ services:
       options:
         max-size: 10m 
   ais_ingestor_files:
-    # Consumes encoded AIS from rabbit and returns decoded AIS to rabbit.
+    # Consumes encoded AIS from files and returns decoded AIS to rabbit.
     hostname: ${PROJECT_NAME}_ais_mover
     build:
       context: .

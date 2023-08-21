@@ -107,12 +107,14 @@ def process_files_in_folder(folder_path):
     Process files in a given folder using multiprocessing. Number of workers
         equal to CPU count.
     """
-
     file_paths = [
         os.path.join(folder_path, file)
         for file in os.listdir(folder_path)
         if os.path.isfile(os.path.join(folder_path, file))
     ]
+    file_paths = [f for f in file_paths if "gitignore" not in f]
+    if len(file_paths)==0:
+        return
     MAX_WORKERS = os.getenv("MAX_WORKERS", os.cpu_count())
     num_processes = min(os.cpu_count(), MAX_WORKERS)
     num_processes = min(len(file_paths), num_processes)
