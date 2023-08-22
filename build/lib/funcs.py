@@ -7,48 +7,12 @@ Created on Wed Mar 29 12:15:15 2017
 """ 
 import logging
 import logging.handlers
-import time
-import os
-import subprocess
-import json
-import datetime
-import pytz
- 
+
 from threading import Timer
-from kombu import Connection, Exchange, Producer, Queue, Consumer, binding
 
 
 log = logging.getLogger('main.funcs') 
 
-def read_env_vars():
-    '''
-    Read environ variables and return as dict. 
-
-    This is to replace the config file function in preperation for rancher, where all config is handled by env vars.
-    '''
-    log.debug('Reading environment variables...')
-    CFG = {}
-
-    #Project
-    CFG['project_name'] = os.getenv('PROJECT_NAME')
-    # Source
-    CFG['src_rabbit_port'] = os.getenv('MOV_RABBIT_MSG_PORT')
-    CFG['src_rabbit_user'] = os.getenv('MOV_RABBITMQ_DEFAULT_USER')
-    CFG['src_rabbit_pw'] = os.getenv('MOV_RABBITMQ_DEFAULT_PASS')
-    CFG['src_rabbit_host'] = os.getenv('MOV_RABBIT_HOST')
-    CFG['src_routing_exch'] = os.getenv('MOV_RABBIT_EXCHANGE')
-    CFG['src_keys'] = os.getenv('MOV_KEYS')
-
-    #Sink
-    CFG['snk_rabbit_host'] = os.getenv('MOV_RABBIT_HOST')
-    CFG['snk_rabbit_port'] = os.getenv('MOV_RABBIT_MSG_PORT')
-    CFG['snk_rabbit_user'] = os.getenv('MOV_RABBITMQ_DEFAULT_USER')
-    CFG['snk_rabbit_pass'] = os.getenv('MOV_RABBITMQ_DEFAULT_PASS')
-    CFG['snk_rabbit_exch'] = os.getenv('MOV_RABBIT_EXCHANGE')  
-
-    log.info('Config: {0}'.format(CFG))
-    return CFG
- 
 
 class Watchdog(Exception):
     '''
