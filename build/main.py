@@ -131,6 +131,7 @@ def read_files(files_folder):
     except Exception as e:
         log.error("Error reading from file:")
         log.error(e)
+        log.error(traceback.format_exc())
     return
 
 
