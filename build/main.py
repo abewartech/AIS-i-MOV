@@ -113,7 +113,7 @@ def process_files_in_folder(folder_path):
         if os.path.isfile(os.path.join(folder_path, file))
     ]
     file_paths = [f for f in file_paths if "gitignore" not in f]
-    if len(file_paths)==0:
+    if len(file_paths) == 0:
         return
     MAX_WORKERS = os.getenv("MAX_WORKERS", os.cpu_count())
     num_processes = min(os.cpu_count(), MAX_WORKERS)
