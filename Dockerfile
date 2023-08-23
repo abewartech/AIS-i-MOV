@@ -1,6 +1,6 @@
 FROM python:3.9.15-slim-buster
 
-RUN apt-get install rar
+RUN apt-get install unrar
 ADD build/requirements.txt /REQUIREMENTS.txt
 RUN pip install -r /REQUIREMENTS.txt
 
