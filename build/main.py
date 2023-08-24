@@ -67,7 +67,7 @@ def process_file(file_path):
     """
     COMPRESSED_FORMATS = ["rar"]
     NMEA_FILE_FORMATS = ["nmea"]
-
+    original_file_path = file_path
     file_extension = file_path.split(".")[-1]
     # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.DockerRabbitProducer()
@@ -95,11 +95,12 @@ def process_file(file_path):
                 except Exception as e:
                     error_message = f"Failed to send msg to rabbitmq:{e}"
                     log.error(error_message)
-
+    log.info("File parsed: {file_path}")
     if file_extension in COMPRESSED_FORMATS:
         # deletes the temp directory and its contents
         shutil.rmtree(temp_dir)
-    shutil.rmtree(file_path)
+    shutil.rmtree(original_file_path)
+    log.info("File deleted: {file_path}")
 
 
 def process_files_in_folder(folder_path):
