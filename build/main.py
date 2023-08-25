@@ -141,7 +141,6 @@ def read_files(files_folder):
 def read_socket(data_logger):
     # Create a TCP/IP socket
     log.info("Opening socket")
-    # TODO: check how to read this from the files
     sock = socket.socket()
     log.info(
         "Setting socket timeout to %s seconds.", os.getenv("SOCKET_TIMEOUT")
@@ -151,7 +150,7 @@ def read_socket(data_logger):
     log.info("Connecting to " + str(server_address))
     sock.connect(server_address)
     # # Create RabbitMQ publisher
-    rabbit_publisher = lib.rabbit.Rabbit_Producer()
+    rabbit_publisher = lib.rabbit.DockerRabbitProducer()
     ais_parser = lib.ais_parse.AIS_Parser()
     ais_message = lib.ais_parse.AIS_Message()
 
