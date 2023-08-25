@@ -26,12 +26,18 @@ class AIS_Line:
 
     def parse_line(self, line):
         line = line.replace("\n", "")
-        header, self.ais_data = [f for f in line.split("\\") if f]
-        self.header_dict = {
-            item.split(":", 1)[0]: item.split(":", 1)[1]
-            for item in header.split(",")
-        }
-
+        try:
+            header, self.ais_data = [f for f in line.split("\\") if f]
+        except:
+            self.ais_data = line
+            header = ""
+        if header:
+            self.header_dict = {
+                item.split(":", 1)[0]: item.split(":", 1)[1]
+                for item in header.split(",")
+            }
+        else:
+            self.header_dict = {}
         # !AIVDM,1,1,,B,33ku82U000OGsfHH:Uv`9j3J0>@<,0*68
         # TODO: check names for meta and meta_2
         (
