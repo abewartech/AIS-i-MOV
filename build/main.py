@@ -85,6 +85,7 @@ def process_file(file_path):
             file_path = extracted_file_path
     file_extension = file_path.split(".")[-1]
     if file_extension in NMEA_FILE_FORMATS:
+        log.info(f"Parsing file: {file_path}")
         for chunk in stream_file_per_chunk(file_path):
             msg_list = ais_parser.parsing_chunk(chunk, ais_message)
 
@@ -114,6 +115,7 @@ def process_files_in_folder(folder_path):
         if os.path.isfile(os.path.join(folder_path, file))
     ]
     file_paths = [f for f in file_paths if "gitignore" not in f]
+    log.info(f"Files to parse: \n {file_paths}")
     if len(file_paths) == 0:
         return
     MAX_WORKERS = os.getenv("MAX_WORKERS", os.cpu_count())
