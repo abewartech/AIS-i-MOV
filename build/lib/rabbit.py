@@ -46,6 +46,7 @@ class DockerRabbitProducer(RabbitProducer):
             self.rabbit_url,
             self.exchange_name,
             self.queue_name,
+            queue_args={ "max_length" : 10000000},
             log=log,
             errback=errback,
         )
