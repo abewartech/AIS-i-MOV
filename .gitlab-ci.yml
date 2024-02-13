@@ -4,13 +4,6 @@
 # This template uses one generic job with conditional builds
 # for the default branch and all other (MR) branches.
 
-greet-job:
-  stage: build
-  script:
-    - echo "Hello, $GITLAB_USER_LOGIN!"
-    - echo "CI registry = $CI_REGISTRY"
-    - echo "CI registry User = $CI_REGISTRY_USER"
- 
 docker-build:
   # Use the official docker image.
   image: docker:latest
