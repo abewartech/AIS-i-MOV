@@ -1,4 +1,11 @@
-# AIS-i-MOV
+---
+# Hugo Key Value pairs 
+title: AIS Message Parsing
+comments: false
+weight: 20
+---
+
+<!-- # AIS-i-MOV -->
 
 The goal of this container is to do the first stage parsing of raw AIS nmea strings and to put them onto the pub/sub message broker. This allows parsed data streams to be ingested from multiple sources (one AIS-i-MOV container per input stream), apply tags to the datastreams (one routing-key applied to each data stream) and allows multiple next stages to ingest data from multiple streams. 
 
