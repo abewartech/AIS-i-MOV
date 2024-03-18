@@ -5,35 +5,48 @@ services:
   # ---------------------------------------------
   ais_ingestor_socket:
     # Consumes encoded AIS from rabbit and returns decoded AIS to rabbit.
-    hostname: ${PROJECT_NAME}_ais_mover
+    container_name: ais_i_mov
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile    
+    networks:
+      - quick-start_back_end
     env_file:
       - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
     volumes:
-      - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows. 
-      - ${MOUNT_LOG_DIR}:${LOG_DIR}
+      - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows.
+      - ./volumes/ais_logs/:${LOG_DIR}
     command: python /usr/local/ais_i_mov/main.py  -ll 'INFO' 
     restart: unless-stopped
     logging:
       driver: json-file
       options:
         max-size: 10m 
-  ais_ingestor_files:
-    # Consumes encoded AIS from files and returns decoded AIS to rabbit.
-    hostname: ${PROJECT_NAME}_ais_mover
-    build:
-      context: .
-      dockerfile: Dockerfile
-    env_file:
-      - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
-    volumes:
-      - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows. 
-      - ${MOUNT_LOG_DIR}:${LOG_DIR}
-    command: python /usr/local/ais_i_mov/main.py  -ll 'INFO' --folder ${FILE_FOLDER}
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: 10m 
+
+  # ais_ingestor_files:
+  #   # Consumes encoded AIS from files and returns decoded AIS to rabbit.
+  #   hostname: ais_i_mov_file
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - .env  #This both the docker-compose env file (to set ports names, image tags etc) and the internal container config (handles passwords, ports to connect to etc.)
+  #   volumes:
+  #     - /etc/localtime:/etc/localtime:ro #This is useful in Linux, doesn't work on Windows. 
+  #     # - ${MOUNT_LOG_DIR}:${LOG_DIR}
+  #   command: python /usr/local/ais_i_mov/main.py  -ll 'INFO' --folder ${FILE_FOLDER}
+  #   restart: unless-stopped
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: 10m 
+
+
+#===============================
+networks:
+#===============================
+  # Network for front end access/management
+  front_end:
+  # Network for data pipeline
+  quick-start_back_end:
+    external: true

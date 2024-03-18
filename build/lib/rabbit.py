@@ -39,6 +39,7 @@ class DockerRabbitProducer(RabbitProducer):
         log.info("Source/Sink Rabbit is at {0}".format(self.rabbit_url))
         self.exchange_name = os.getenv("AISIMOV_RABBIT_EXCHANGE")
         self.queue_name = os.getenv("AISIMOV_RABBIT_QUEUE")
+        self.queue_args = {'max_length':int(os.getenv("QUEUE_MAX_LENGTH"))}
 
         log.info("Producer init complete")
 
@@ -46,6 +47,7 @@ class DockerRabbitProducer(RabbitProducer):
             self.rabbit_url,
             self.exchange_name,
             self.queue_name,
+            self.queue_args,
             log=log,
             errback=errback,
         )

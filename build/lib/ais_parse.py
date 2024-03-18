@@ -22,7 +22,7 @@ MIN_LINE_LENGTH = 10
 class AIS_Line:
     def __init__(self, line: str):
         self.parse_line(line)
-        self._set_standards_atributes()
+        # self._set_standards_atributes()
 
     def parse_line(self, line):
         line = line.replace("\n", "")
