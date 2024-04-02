@@ -15,7 +15,8 @@ from lib.ais_atributes_standards import talker_ids
 
 log = logging.getLogger("ais_parse")
 
-TIMESTAMP_DIVISOR = 1000  # because the timestamp is in milliseconds
+TIMESTAMP_DIVISOR = int(os.getenv('TIMESTAMP_DIVISOR',default = 1))  # because the timestamp is in milliseconds
+# TIMESTAMP_DIVISOR = 1000  # because the timestamp is in milliseconds
 MIN_LINE_LENGTH = 10
 
 
@@ -96,6 +97,9 @@ class AIS_Message:
                     int(event_time.split("*")[0]) / TIMESTAMP_DIVISOR,
                     datetime.timezone.utc,
                 ).isoformat(timespec="seconds")
+            if event_time is None:
+                event_time = datetime.datetime.utcnow().isoformat()
+
         if not self.ais_data:
             self.ais_data = parsed_line.ais_data
             self.header_dict = parsed_line.header_dict
