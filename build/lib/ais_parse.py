@@ -97,8 +97,10 @@ class AIS_Message:
                     int(event_time.split("*")[0]) / TIMESTAMP_DIVISOR,
                     datetime.timezone.utc,
                 ).isoformat(timespec="seconds")
-            if event_time is None:
-                event_time = datetime.datetime.utcnow().isoformat()
+
+        if event_time is None:
+            # This is to provide a best guess at event time when one isn't provided
+            event_time = datetime.datetime.utcnow().isoformat()
 
         if not self.ais_data:
             self.ais_data = parsed_line.ais_data
