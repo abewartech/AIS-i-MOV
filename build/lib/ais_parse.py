@@ -89,7 +89,8 @@ class AIS_Message:
     def parse_line(self, parsed_line: AIS_Line):
         if self.complete_message:
             self._reset()
-        event_time = parsed_line.header_dict.get("c", datetime.datetime.utcnow().isoformat())
+
+        event_time = parsed_line.header_dict.get("c", datetime.datetime.now().strftime('%s'))
 
         if not self.event:
             if event_time:
@@ -98,9 +99,9 @@ class AIS_Message:
                     datetime.timezone.utc,
                 ).isoformat(timespec="seconds")
 
-        # if event_time is None:
-        #     # This is to provide a best guess at event time when one isn't provided
-        #     event_time = datetime.datetime.utcnow().isoformat()
+        if event_time is None:
+            # This is to provide a best guess at event time when one isn't provided
+            event_time = datetime.datetime.utcnow().isoformat()
 
         if not self.ais_data:
             self.ais_data = parsed_line.ais_data
