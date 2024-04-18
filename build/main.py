@@ -10,6 +10,7 @@ import logging
 import os
 import shutil
 import socket
+import signal
 import sys
 import tempfile
 import time
@@ -35,9 +36,18 @@ def WatchDogHandler():
     log.error("No messages published within 300 seconds. Exiting container...")
     os._exit(1)
 
+# https://stackoverflow.com/questions/25027122/break-the-function-after-certain-timee
+class TimeoutException(Exception):   # Custom exception class
+    pass
+
+def timeout_handler(signum, frame):   # Custom signal handler
+    raise TimeoutException
+
+# Change the behavior of SIGALRM
+signal.signal(signal.SIGALRM, timeout_handler)
 
 log = logging.getLogger("main")
-
+socket.setdefaulttimeout(10)
 
 def setup_logging():
     """
@@ -126,7 +136,6 @@ def process_files_in_folder(folder_path):
         pool.map(process_file, file_paths)
     return
 
-
 def read_files(files_folder):
     try:
         while True:
@@ -136,7 +145,6 @@ def read_files(files_folder):
         log.error(e)
         log.error(traceback.format_exc())
     return
-
 
 def read_socket(data_logger):
     # Create a TCP/IP socket
@@ -158,45 +166,51 @@ def read_socket(data_logger):
     try:
         log.info("Streaming AIS...")
         while True:
+            signal.alarm(5)
             # https://stackoverflow.com/questions/47758023/python3-socket-random-partial-result-on-socket-receive
-            while True:
-                try:
-                    # Check the chunk
-                    chunk = sock.recv(int(os.getenv("CHUNK_BYTES")))
+            try:
+                # Check the chunk
+                chunk = sock.recv(int(os.getenv("CHUNK_BYTES")))
 
-                    log.debug("Chunk received")
+                log.debug("Chunk received")
 
-                    if not chunk:
-                        log.debug(
-                            "Complete chunk, reading more: len = {}".format(
-                                len(chunk)
-                            )
+                if not chunk:
+                    log.debug(
+                        "Complete chunk, reading more: len = {}".format(
+                            len(chunk)
                         )
-                        break
-
-                    # Parse the said chunk.
-                    # The parser will only return a list of complete messages
-                    # (multiline or not)
-                    # The remaining, will it be only a piece of a line, or an
-                    # incomplete multiline message, it stays in memory
-                    # waiting for the remaing.
-                    msg_list = ais_parser.parsing_chunk(chunk, ais_message)
-
-                    log.debug("Chunk parsed")
-
-                    # send to rabbitMQ
-                    for msg in msg_list:
-                        try:
-                            log.debug("Sending message to RMQ: " + str(msg))
-                            rabbit_publisher.produce(msg, msg["routing_key"])
-                        except Exception as e:
-                            error_message = (
-                                f"Failed to send msg to rabbitmq:{e}"
-                            )
-                            log.error(error_message)
-                except socket.error:
-                    sock.close()
+                    )
                     break
+
+                # Parse the said chunk.
+                # The parser will only return a list of complete messages
+                # (multiline or not)
+                # The remaining, will it be only a piece of a line, or an
+                # incomplete multiline message, it stays in memory
+                # waiting for the remaing.
+                msg_list = ais_parser.parsing_chunk(chunk, ais_message)
+
+                log.debug("Chunk parsed")
+
+                # send to rabbitMQ
+                for msg in msg_list:
+                    try:
+                        log.debug("Sending message to RMQ: " + str(msg))
+                        rabbit_publisher.produce(msg, msg["routing_key"])
+                    except Exception as e:
+                        error_message = (
+                            f"Failed to send msg to rabbitmq:{e}"
+                        )
+                        log.error(error_message)
+            except socket.error:
+                sock.close()
+                break
+            except TimeoutException:
+                # Socket recv took more than 5 seconds to complete. Break it and restart the loop
+                log.warning('Socket Timeout...')
+                sock.close() 
+                break 
+
             log.debug("----------------")
     except Exception as e:
         log.error(e)
