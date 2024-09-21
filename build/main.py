@@ -15,6 +15,7 @@ import sys
 import tempfile
 import time
 import traceback
+import paho.mqtt.client as mqtt
 from multiprocessing import Pool
 
 import lib.ais_parse
@@ -156,8 +157,16 @@ def read_socket(data_logger):
     sock.settimeout(int(os.getenv("SOCKET_TIMEOUT")))
     server_address = (os.getenv("SOURCE_HOST"), int(os.getenv("SOURCE_PORT")))
     log.info("Connecting to " + str(server_address))
-    sock.connect(server_address)
-    # # Create RabbitMQ publisher
+    
+    try:
+        sock.connect(server_address)
+    except socket.error:
+        log.error("Socket connection failed, attempting MQTT connection...")
+        mqtt_client = mqtt.Client("dataaisbjm")  # Update MQTT client initialization
+        mqtt_client.connect("82.197.69.32", 1883, 60)  # Update connect method
+        return
+
+    # Create RabbitMQ publisher
     rabbit_publisher = lib.rabbit.DockerRabbitProducer()
     ais_parser = lib.ais_parse.AIS_Parser()
     ais_message = lib.ais_parse.AIS_Message()

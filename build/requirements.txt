@@ -16,3 +16,4 @@ vine==5.0.0
     # via
     #   amqp
     #   kombu
+paho-mqtt==1.6.1
